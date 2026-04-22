@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -9,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Jump")]
     public float jumpForce = 5f;
-    private bool isGrounded;
+    public bool isGrounded;
 
     [Header("Facing")]
     public bool facingRight = true;
@@ -30,12 +29,11 @@ public class PlayerMovement : MonoBehaviour
     [Header("Double Jump")]
     private int maxJump = 2;
     private int currentJump = 0;
-    
-    [Header("Wall Check")]
-    public bool isTouchingLeftWall = false;
-    public bool isTouchingRightWall = false;
-    private float wallSlideSpeed = 2f;
 
+    [Header("Wall Movement")]
+    public float wallJumpForce = 5f;
+    public bool isTouchingWall = false;
+    
     void Update()
     {
         handleInput();
@@ -61,22 +59,6 @@ public class PlayerMovement : MonoBehaviour
         handleMovement();
     }
 
-    public void wallSlideLeft()
-    {
-        if (isTouchingLeftWall && !isGrounded && rb.linearVelocity.y < 0)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -wallSlideSpeed);
-        }
-    }
-
-    public void wallSlideRight()
-    {
-        if (isTouchingRightWall && !isGrounded && rb.linearVelocity.y < 0)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -wallSlideSpeed);
-        }
-    }
-
     public void handleInput()
     {
         if (Input.GetKey(KeyCode.D))
@@ -99,6 +81,8 @@ public class PlayerMovement : MonoBehaviour
             StartDash();
         }
         dash();
+
+        wallJump();
     }
 
     public void flip()
@@ -151,6 +135,15 @@ public class PlayerMovement : MonoBehaviour
 
             currentJump++;
             isGrounded = false;
+        }
+    }
+
+    public void wallJump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && isTouchingWall && !isGrounded)
+        {
+            rb.linearVelocity = new Vector2(facingRight ? -wallJumpForce : wallJumpForce, jumpForce);
+            isTouchingWall = false;
         }
     }
 
