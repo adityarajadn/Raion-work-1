@@ -16,8 +16,12 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Dash")]
     public float dashSpeed = 20f;
-    public float dashDuration = 0.2f;
-    bool isDashing;
+    public float dashDuration = 2f;
+    public float dashCooldown = 0.75f;
+    bool isDashing = false;
+    private float dashTimer = 0f;
+    private float nextDashTime = 0f;
+    private float originalGravityScale;
 
     [Header("Air Control")]
     public float groundAcceleration = 30f;
@@ -37,6 +41,19 @@ public class PlayerMovement : MonoBehaviour
         handleInput();
         jump();
         flip();
+    }
+
+    void Awake()
+    {
+        if (rb == null)
+        {
+            rb = GetComponent<Rigidbody2D>();
+        }
+
+        if (rb != null)
+        {
+            originalGravityScale = rb.gravityScale;
+        }
     }
 
     void FixedUpdate()
@@ -77,10 +94,11 @@ public class PlayerMovement : MonoBehaviour
             dir.x = 0;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && Time.time >= nextDashTime)
         {
-            StartCoroutine(dash());
+            StartDash();
         }
+        dash();
     }
 
     public void flip()
@@ -136,21 +154,28 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    IEnumerator dash()
-    {
+    void StartDash()
+    {   
         isDashing = true;
-
-        float originalGravity = rb.gravityScale;
+        dashTimer = dashDuration;
+        nextDashTime = Time.time + dashCooldown; // Set waktu berikutnya untuk dash
         rb.gravityScale = 0f;
+    }
+    void dash()
+    {
+        if (!isDashing) return;
+
+        dashTimer -= Time.deltaTime;
 
         rb.linearVelocity = new Vector2(
             facingRight ? dashSpeed : -dashSpeed,
             0
         );
 
-        yield return new WaitForSeconds(dashDuration);
-
-        rb.gravityScale = originalGravity;
-        isDashing = false;
+        if (dashTimer <= 0f)
+        {
+            isDashing = false;
+            rb.gravityScale = originalGravityScale;
+        }
     }
 }

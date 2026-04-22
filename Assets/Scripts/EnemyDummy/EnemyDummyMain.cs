@@ -1,25 +1,53 @@
+using System.Collections;
 using UnityEngine;
 
 public class EnemyDummyMain : MonoBehaviour
 {
+    public Collider2D attackRange;
+    private Coroutine attackRoutine;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public float damageAmount = 10f;
+    public SpriteRenderer spriteRenderer;
+
+    IEnumerator attack()
     {
-        
+        while (true)
+        {
+            attackRange.enabled = true;
+            yield return new WaitForSeconds(0.5f); // Durasi serangan aktif
+            attackRange.enabled = false;
+            yield return new WaitForSeconds(3f); // Durasi cooldown serangan
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    void Start()
     {
-        
+        if (attackRoutine == null)
+        {
+            attackRoutine = StartCoroutine(attack());
+        }
+    }
+    
+    void OnEnable()
+    {
+        PlayerAttack.OnAttack += HandlePlayerAttack; // Subscribe ke event serangan pemain
+    }
+
+    void OnDisable()
+    {
+        PlayerAttack.OnAttack -= HandlePlayerAttack; // Unsubscribe dari event serangan pemain  
+    }
+
+    void HandlePlayerAttack(bool isAttacking)
+    {
+        //
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("PlayerAttackHitBox"))
         {
-            GetComponent<SpriteRenderer>().color = Color.red;
+            spriteRenderer.color = Color.red;
         }
     }
 
@@ -27,7 +55,7 @@ public class EnemyDummyMain : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("PlayerAttackHitBox"))
         {
-            GetComponent<SpriteRenderer>().color = Color.white;
+            spriteRenderer.color = Color.white;
         }
     }
 }
