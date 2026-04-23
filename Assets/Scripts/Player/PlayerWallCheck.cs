@@ -22,7 +22,15 @@ public class PlayerWallCheck : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Wall"))
         {
-            player.isTouchingWall = true;
+            updateWallSide(collision);
+        }
+    }
+
+    void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            updateWallSide(collision);
         }
     }
 
@@ -30,7 +38,21 @@ public class PlayerWallCheck : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Wall"))
         {
-            player.isTouchingWall = false;
+            player.setWallSide(0);
+        }
+    }
+
+    void updateWallSide(Collider2D collision)
+    {
+        if (player == null) return;
+
+        float deltaX = collision.bounds.center.x - player.transform.position.x;
+        int side = deltaX < 0f ? -1 : 1;
+        player.setWallSide(side);
+
+        if (wallCheckCollider != null)
+        {
+            player.setIsTouchingWall(true);
         }
     }
 }

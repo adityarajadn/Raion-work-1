@@ -1,120 +1,174 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+
+public class PlayerMovement : MonoBehaviour, IMoveable, IDashable, IWallJump
 {
-    public float speed = 10f;
-    private Vector2 dir;
-    public Rigidbody2D rb;
+    [Header("Movement")]
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float jumpForce = 5f;
 
-    [Header("Jump")]
-    public float jumpForce = 5f;
-    public bool isGrounded;
-
-    [Header("Facing")]
-    public bool facingRight = true;
+    public float getJumpForce() {
+        return jumpForce;
+    }
 
     [Header("Dash")]
-    public float dashSpeed = 20f;
-    public float dashDuration = 2f;
-    public float dashCooldown = 0.75f;
-    bool isDashing = false;
-    private float dashTimer = 0f;
-    private float nextDashTime = 0f;
-    private float originalGravityScale;
+    [SerializeField] private float dashForce = 1.5f;
+    [SerializeField] private float dashDuration = 0.2f;
+    [SerializeField] private float dashCooldown = 1f;
 
-    [Header("Air Control")]
-    public float groundAcceleration = 30f;
-    public float airAcceleration = 10f;
+    // --- Delegates ---
+    public event Action OnDashStart;
+    public event Action OnDashEnd;
+    public event Action OnLand;
+    public event Action OnWallJump;
 
-    [Header("Double Jump")]
-    private int maxJump = 2;
-    private int currentJump = 0;
+    // --- State ---
+    private Rigidbody2D rb;
+    private bool isDashing;
+    private bool isGrounded;
+    private float dashCooldownTimer;
+    private bool isTouchingWall;
+    private int wallSide;
+    private float moveInputX;
 
-    [Header("Wall Movement")]
-    public float wallJumpForce = 5f;
-    public bool isTouchingWall = false;
-    
-    void Update()
+    public void setIsTouchingWall(bool value)
     {
-        handleInput();
-        jump();
-        flip();
+        isTouchingWall = value;
+
+        if (!value)
+        {
+            wallSide = 0;
+        }
+    }
+
+    public void setWallSide(int side)
+    {
+        wallSide = Mathf.Clamp(side, -1, 1);
+        isTouchingWall = wallSide != 0;
+    }
+
+    public void setMoveInputX(float inputX)
+    {
+        moveInputX = Mathf.Clamp(inputX, -1f, 1f);
     }
 
     void Awake()
     {
-        if (rb == null)
-        {
-            rb = GetComponent<Rigidbody2D>();
-        }
+        rb = GetComponent<Rigidbody2D>();
+    }
 
-        if (rb != null)
+    void Update()
+    {
+        handleDashCooldown();
+    }
+
+    void handleDashCooldown()
+    {
+        if (dashCooldownTimer > 0f)
         {
-            originalGravityScale = rb.gravityScale;
+            dashCooldownTimer -= Time.deltaTime;
+            Debug.Log("Dash cooldown: " + dashCooldownTimer);
         }
     }
 
-    void FixedUpdate()
+    // --- IMoveable ---
+    public void Move(Vector2 direction)
     {
-        handleMovement();
+        if (isDashing) return; // tidak bisa bergerak biasa saat dash
+
+        rb.linearVelocity = new Vector2(direction.x * moveSpeed, rb.linearVelocity.y);
     }
 
-    public void handleInput()
+    public void SetFacing(int direction)
     {
-        if (Input.GetKey(KeyCode.D))
-        {
-            dir.x = 1;
-            facingRight = true;
-        }
-        else if (Input.GetKey(KeyCode.A))
-        {
-            dir.x = -1;
-            facingRight = false;
-        }
-        else
-        {
-            dir.x = 0;
-        }
+        if (direction == 0) return;
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && Time.time >= nextDashTime)
-        {
-            StartDash();
-        }
-        dash();
-
-        wallJump();
+        int currentScaleY = (int)transform.localScale.y;
+        int currentScaleZ = (int)transform.localScale.z;
+        transform.localScale = new Vector3(direction, currentScaleY, currentScaleZ);
     }
 
-    public void flip()
+    public void Jump(float jumpForce)
     {
-        Vector3 scale = transform.localScale;
-        scale.x = facingRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
-        transform.localScale = scale;
+        if (isDashing || !isGrounded) return;
+
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        isGrounded = false;
+    }
+    
+    // --- IDashable ---
+    public bool CanDash()
+    {
+        return !isDashing && dashCooldownTimer <= 0f;
     }
 
-    public void handleMovement()
+    public void Dash(Vector2 direction)
     {
-        if (isDashing) return;
+        if (!CanDash()) return;
+        StartCoroutine(DashRoutine(direction));
+    }
 
-        float targetSpeed = dir.x * speed;
+    // --- IWallJump ---
+    public bool CanWallJump()
+    {
+        return isTouchingWall && wallSide != 0 && !isGrounded && !isDashing && IsHoldingTowardWall();
+    }
 
-        float accel = isGrounded ? groundAcceleration : airAcceleration;
+    public void WallJump(Vector2 direction, float jumpForce)
+    {
+        if (!CanWallJump()) return;
 
-        float newX = Mathf.MoveTowards(
-            rb.linearVelocity.x,
-            targetSpeed,
-            accel * Time.fixedDeltaTime
-        );
+        float jumpDirectionX = wallSide == -1 ? 1f : -1f;
+        Vector2 jumpDirection = new Vector2(jumpDirectionX, 1f).normalized;
 
-        rb.linearVelocity = new Vector2(newX, rb.linearVelocity.y);
+        rb.linearVelocity = Vector2.zero; // reset velocity sebelum wall jump
+        rb.AddForce(jumpDirection * jumpForce, ForceMode2D.Impulse);
+        OnWallJump?.Invoke(); // subscriber dikasih tau kalau wall jump udah dilakukan
+
+        isTouchingWall = false;
+        wallSide = 0;
+        isGrounded = false;
+    }
+
+    bool IsHoldingTowardWall()
+    {
+        if (Mathf.Abs(moveInputX) > 0.01f)
+        {
+            return (wallSide == -1 && moveInputX < 0f) || (wallSide == 1 && moveInputX > 0f);
+        }
+
+        float facingX = transform.localScale.x;
+        return (wallSide == -1 && facingX < 0f) || (wallSide == 1 && facingX > 0f);
+    }
+    IEnumerator DashRoutine(Vector2 direction)
+    {
+        isDashing = true;
+        Debug.Log("Dash started!");
+        
+        dashCooldownTimer = dashCooldown;
+
+        OnDashStart?.Invoke(); // subscriber dikasih tau kalau dash udah mulai
+
+        rb.linearVelocity = direction.normalized * dashForce;
+
+        // tunggu sampai dash selesai
+        yield return new WaitForSeconds(dashDuration);
+
+        isDashing = false;
+        OnDashEnd?.Invoke(); // subscriber dikasih tau kalau dash udah selesai
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Platform"))
         {
-            isGrounded = true;
-            currentJump = 0;
+            if (!isGrounded)
+            {
+                isGrounded = true;
+                OnLand?.Invoke(); // subscriber dikasih tau kalau player udah mendarat
+            }
         }
     }
 
@@ -123,52 +177,6 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Platform"))
         {
             isGrounded = false;
-        }
-    }
-
-    public void jump()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && currentJump < maxJump)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-
-            currentJump++;
-            isGrounded = false;
-        }
-    }
-
-    public void wallJump()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && isTouchingWall && !isGrounded)
-        {
-            rb.linearVelocity = new Vector2(facingRight ? -wallJumpForce : wallJumpForce, jumpForce);
-            isTouchingWall = false;
-        }
-    }
-
-    void StartDash()
-    {   
-        isDashing = true;
-        dashTimer = dashDuration;
-        nextDashTime = Time.time + dashCooldown; // Set waktu berikutnya untuk dash
-        rb.gravityScale = 0f;
-    }
-    void dash()
-    {
-        if (!isDashing) return;
-
-        dashTimer -= Time.deltaTime;
-
-        rb.linearVelocity = new Vector2(
-            facingRight ? dashSpeed : -dashSpeed,
-            0
-        );
-
-        if (dashTimer <= 0f)
-        {
-            isDashing = false;
-            rb.gravityScale = originalGravityScale;
         }
     }
 }
