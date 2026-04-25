@@ -56,6 +56,11 @@ public class EnemyDummyMain : DamageableEntity, IAttackDamageSource
         }
     }
 
+    void Update()
+    {
+        Debug.Log($"Enemy Health: " + CurrentHealth + "/" +maxHealth);
+    }
+
     void Start()
     {
         if (attackRoutine == null)

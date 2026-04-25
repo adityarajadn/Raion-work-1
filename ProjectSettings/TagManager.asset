@@ -8,6 +8,7 @@ TagManager:
   - Wall
   - PlayerAttackHitBox
   - EnemyAttackHitBox
+  - EnemyAttackEffect_Slash
   layers:
   - Default
   - TransparentFX

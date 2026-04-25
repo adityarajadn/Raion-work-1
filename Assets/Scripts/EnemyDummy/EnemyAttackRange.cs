@@ -3,7 +3,7 @@ using System;
 
 public class EnemyAttackRange : MonoBehaviour, ICollisionDamageDealer
 {
-    public static event Action<float, PlayerHealth> OnPlayerHitByEnemy;
+    public event Action<float, PlayerHealth> OnPlayerHitByEnemy;
 
     public EnemyDummyMain enemyDummy;
     public event Action<bool> Attack;
