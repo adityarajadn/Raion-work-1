@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour, IAttackController
@@ -12,6 +13,8 @@ public class PlayerAttack : MonoBehaviour, IAttackController
     public Collider2D hitBox;
     private bool isAttacking;
     public bool IsAttacking => isAttacking;
+    private float attackCooldown = 0.5f;
+    public bool canAttack = true;
 
     public float attackDuration = 0.2f;
     private Coroutine attackRoutine;
@@ -53,7 +56,7 @@ public class PlayerAttack : MonoBehaviour, IAttackController
 
     void handleInput()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && !isAttacking)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && !isAttacking && canAttack)
         {
             attackRoutine = StartCoroutine(AttackingRoutine());
         }
@@ -75,14 +78,14 @@ public class PlayerAttack : MonoBehaviour, IAttackController
         }
 
         isAttacking = value;
+        StartCoroutine(AttackCooldownRoutine());
 
         if (hitBox != null)
         {
             hitBox.enabled = isAttacking;
         }
 
-        AttackStateChanged?.Invoke(isAttacking);
-        OnAttack?.Invoke(isAttacking);
+        
 
         if (isAttacking)
         {
@@ -93,6 +96,16 @@ public class PlayerAttack : MonoBehaviour, IAttackController
             OnAttackEnded?.Invoke();
         }
     }
+
+    IEnumerator AttackCooldownRoutine()
+    {
+        canAttack = false;
+        AttackStateChanged?.Invoke(isAttacking);
+        OnAttack?.Invoke(isAttacking);
+        yield return new WaitForSeconds(attackCooldown);
+        canAttack = true;
+    }
+    
     
     void parryEffect(bool isParry) {
         if (isParry && !isAttacking) {

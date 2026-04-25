@@ -487,6 +487,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   hitBox: {fileID: 381407776}
+  canAttack: 1
   attackDuration: 0.5
   playerParry: {fileID: 0}
 --- !u!114 &204942789
