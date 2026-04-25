@@ -15,12 +15,34 @@ public class PlayerAttack : MonoBehaviour, IAttackController
 
     public float attackDuration = 0.2f;
     private Coroutine attackRoutine;
+    public PlayerParry playerParry;
 
     void Awake()
     {
         if (hitBox != null)
         {
             hitBox.enabled = false;
+        }
+
+        if (playerParry == null)
+        {
+            playerParry = GetComponent<PlayerParry>();
+        }
+    }
+
+    void OnEnable()
+    {
+        if (playerParry != null)
+        {
+            playerParry.OnParry += parryEffect;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (playerParry != null)
+        {
+            playerParry.OnParry -= parryEffect;
         }
     }
 
@@ -69,6 +91,15 @@ public class PlayerAttack : MonoBehaviour, IAttackController
         else
         {
             OnAttackEnded?.Invoke();
+        }
+    }
+    
+    void parryEffect(bool isParry) {
+        if (isParry && !isAttacking) {
+            StartCoroutine(AttackingRoutine());
+            Debug.Log("Parry Success!");
+        } else {
+            Debug.Log("Parry Failed!");
         }
     }
 }

@@ -38,6 +38,12 @@ public class EnemyAttackRange : MonoBehaviour, ICollisionDamageDealer
             return;
         }
 
+        PlayerParry playerParry = collision.GetComponent<PlayerParry>();
+        if (playerParry != null && playerParry.TryParry())
+        {
+            return;
+        }
+
         PlayerHealth playerHealth = collision.GetComponent<PlayerHealth>();
         if (playerHealth == null || enemyDummy == null)
         {

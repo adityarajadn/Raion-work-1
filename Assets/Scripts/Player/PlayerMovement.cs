@@ -87,7 +87,6 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
         HandleInput();
         HandleJumpInput();
         Flip();
-
     }
 
     void FixedUpdate()
