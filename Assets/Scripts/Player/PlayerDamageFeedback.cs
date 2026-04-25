@@ -1,17 +1,24 @@
 using System.Collections;
 using UnityEngine;
 
-public class PlayerDamageFeedback : MonoBehaviour
+public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
 {
+    public PlayerHealth playerHealth;
     public SpriteRenderer targetRenderer;
     public Color normalColor = Color.white;
     public Color damageColor = Color.red;
     public float flashDuration = 0.12f;
+    
 
     private Coroutine flashRoutine;
 
     void Awake()
     {
+        if (playerHealth == null)
+        {
+            playerHealth = GetComponent<PlayerHealth>();
+        }
+
         if (targetRenderer == null)
         {
             targetRenderer = GetComponent<SpriteRenderer>();
@@ -20,17 +27,28 @@ public class PlayerDamageFeedback : MonoBehaviour
 
     void OnEnable()
     {
-        PlayerHealth.OnDamage += HandleDamageEvent;
+        if (playerHealth != null)
+        {
+            playerHealth.Damaged += HandleDamageEvent;
+        }
     }
 
     void OnDisable()
     {
-        PlayerHealth.OnDamage -= HandleDamageEvent;
+        if (playerHealth != null)
+        {
+            playerHealth.Damaged -= HandleDamageEvent;
+        }
     }
 
-    void HandleDamageEvent(bool isDamaged)
+    void HandleDamageEvent(float currentHealth, float maxHealth)
     {
-        if (!isDamaged || targetRenderer == null)
+        PlayDamageFeedback(currentHealth, maxHealth);
+    }
+
+    public void PlayDamageFeedback(float currentHealth, float maxHealth)
+    {
+        if (targetRenderer == null)
         {
             return;
         }

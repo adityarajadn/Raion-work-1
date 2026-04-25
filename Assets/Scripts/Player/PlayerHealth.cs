@@ -2,42 +2,47 @@ using System;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : DamageableEntity
 {
+    public static event Action<float, float> OnPlayerDamaged;
+    public static event Action OnPlayerDied;
 
-    public float maxHealth = 100f;
-    private float currentHealth;
-    public static event Action<bool> OnDamage;
     public CinemachineImpulseSource impulseSource;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    protected override void Awake()
     {
-        currentHealth = maxHealth;
+        base.Awake();
 
-        impulseSource = GetComponent<CinemachineImpulseSource>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void TakeDamage(float damage)
-    {
-        CameraShakeManager.instance.CameraShake(impulseSource);
-        currentHealth -= damage;
-        OnDamage?.Invoke(true); // Memanggil event dengan status terkena damage
-        if (currentHealth <= 0)
+        if (impulseSource == null)
         {
-            Die();
+            impulseSource = GetComponent<CinemachineImpulseSource>();
         }
     }
 
-    void Die()  
+    void OnEnable()
+    {
+        Damaged += HandleDamaged;
+        Died += HandleDied;
+    }
+
+    void OnDisable()
+    {
+        Damaged -= HandleDamaged;
+        Died -= HandleDied;
+    }
+
+    void HandleDamaged(float current, float max)
+    {
+        OnPlayerDamaged?.Invoke(current, max);
+    }
+
+    void HandleDied()
+    {
+        OnPlayerDied?.Invoke();
+    }
+
+    protected override void OnDeath()
     {
         Debug.Log("Player has died.");
     }
-    
 }

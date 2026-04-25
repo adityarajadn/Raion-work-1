@@ -1,22 +1,58 @@
 using System.Collections;
 using UnityEngine;
 
-public class EnemyDummyMain : MonoBehaviour
+public class EnemyDummyMain : DamageableEntity, IAttackDamageSource
 {
+    public static event System.Action<EnemyDummyMain> OnEnemyDefeated;
+
     public Collider2D attackRange;
+    private EnemyAttackRange attackRangeEventSource;
     private Coroutine attackRoutine;
 
     public float damageAmount = 10f;
+    public float DamageAmount => damageAmount;
     public SpriteRenderer spriteRenderer;
+    public float playerAttackDamage = 25f;
 
     IEnumerator attack()
     {
         while (true)
         {
+            if (attackRangeEventSource != null)
+            {
+                attackRangeEventSource.SetAttackState(true);
+            }
+
             attackRange.enabled = true;
             yield return new WaitForSeconds(0.5f); // Durasi serangan aktif
             attackRange.enabled = false;
+
+            if (attackRangeEventSource != null)
+            {
+                attackRangeEventSource.SetAttackState(false);
+            }
+
             yield return new WaitForSeconds(3f); // Durasi cooldown serangan
+        }
+    }
+
+    void Awake()
+    {
+        base.Awake();
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        if (attackRange != null)
+        {
+            attackRangeEventSource = attackRange.GetComponent<EnemyAttackRange>();
+        }
+
+        if (attackRangeEventSource == null)
+        {
+            attackRangeEventSource = GetComponentInChildren<EnemyAttackRange>();
         }
     }
 
@@ -40,14 +76,27 @@ public class EnemyDummyMain : MonoBehaviour
 
     void HandlePlayerAttack(bool isAttacking)
     {
-        //
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        if (!isAttacking)
+        {
+            spriteRenderer.color = Color.white;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("PlayerAttackHitBox"))
         {
-            spriteRenderer.color = Color.red;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.red;
+            }
+
+            TakeDamage(playerAttackDamage);
         }
     }
 
@@ -55,7 +104,16 @@ public class EnemyDummyMain : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("PlayerAttackHitBox"))
         {
-            spriteRenderer.color = Color.white;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.white;
+            }
         }
+    }
+
+    protected override void OnDeath()
+    {
+        OnEnemyDefeated?.Invoke(this);
+        Destroy(gameObject);
     }
 }
