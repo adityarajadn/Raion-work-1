@@ -2,47 +2,71 @@ using System;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class PlayerHealth : DamageableEntity
+public class PlayerHealth : MonoBehaviour
 {
-    public static event Action<float, float> OnPlayerDamaged;
-    public static event Action OnPlayerDied;
+    public event Action<bool> OnDied;
+    public event Action<float, float> OnDamaged;
 
     public CinemachineImpulseSource impulseSource;
+    public float currentHealth;
+    public float maxHealth = 60;
+    public float damageReceived;
 
-    protected override void Awake()
+    void Awake()
     {
-        base.Awake();
-
         if (impulseSource == null)
         {
             impulseSource = GetComponent<CinemachineImpulseSource>();
         }
+
+        currentHealth = maxHealth;
     }
 
     void OnEnable()
     {
-        Damaged += HandleDamaged;
-        Died += HandleDied;
+        BossStateController.basicAttackDamage += setDamageReceived;
+        BossStateController.pattern2Damage += setDamageReceived;
+        BossStateController.pattern3Damage += setDamageReceived;
     }
 
     void OnDisable()
     {
-        Damaged -= HandleDamaged;
-        Died -= HandleDied;
+        BossStateController.basicAttackDamage -= setDamageReceived;
+        BossStateController.pattern2Damage -= setDamageReceived;
+        BossStateController.pattern3Damage -= setDamageReceived;
     }
 
-    void HandleDamaged(float current, float max)
+    void OnTriggerEnter2D(Collider2D other)
     {
-        OnPlayerDamaged?.Invoke(current, max);
+        if (other.CompareTag("EnemyAttackHitBox"))
+        {
+            TakeDamage(damageReceived); // Example damage value
+        }
     }
 
-    void HandleDied()
+    void setDamageReceived(float damage)
     {
-        OnPlayerDied?.Invoke();
+        damageReceived = damage;
     }
 
-    protected override void OnDeath()
+    void TakeDamage(float damage)
     {
-        Debug.Log("Player has died.");
+        currentHealth -= damage;
+        checkDeath();
+        OnDamaged?.Invoke(currentHealth, maxHealth);
+    }
+
+    void checkDeath()
+    {
+        if (currentHealth <= 0f)
+        {
+            die();
+        }
+    }
+
+    void die()
+    {
+        currentHealth = 0f;
+        OnDied?.Invoke(true);
     }
 }

@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour, IMovementController, IDashController
 {
-    public event Action OnJump;
-    public event Action OnWallJump;
+    public event Action<bool> OnJump;
+    public event Action<bool> OnWallJump;
     public event Action<bool> OnDashStateChanged;
     public event Action<bool> DashStateChanged;
     public event Action<bool> OnMoving;
@@ -165,7 +165,7 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
 
             currentJump++;
             isGrounded = false;
-            OnJump?.Invoke();
+            OnJump?.Invoke(true);
         }
     }
 
@@ -196,7 +196,7 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
         wallSide = 0;
         isGrounded = false;
         currentJump = 1;
-        OnWallJump?.Invoke();
+        OnWallJump?.Invoke(true);
     }
 
     void Flip()

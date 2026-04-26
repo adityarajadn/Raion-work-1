@@ -14,6 +14,7 @@ public class PlayerAnimationHandler : MonoBehaviour
     [SerializeField] private string isHurtParameter = "isHurt";
     [SerializeField] private string isAttackingParameter = "isAttacking";
     [SerializeField] private float hurtDuration = 0.15f;
+    [SerializeField] private float jumpDuration = 0.1f;
 
     private Action<bool> movingHandler;
     private Action<bool> attackHandler;
@@ -42,17 +43,21 @@ public class PlayerAnimationHandler : MonoBehaviour
         if (playerMovement != null)
         {
             playerMovement.OnMoving += movingHandler;
+            playerMovement.OnJump += handlePlayerJumping;
+            playerMovement.OnWallJump += handlePlayerJumping;
         }
 
         if (playerAttack != null)
         {
             playerAttack.AttackStateChanged += attackHandler;
+
         }
 
         if (playerHealth != null)
         {
-            playerHealth.Damaged += damagedHandler;
+            playerHealth.OnDamaged += damagedHandler;
         }
+        
     }
 
     void OnDisable()
@@ -60,6 +65,8 @@ public class PlayerAnimationHandler : MonoBehaviour
         if (playerMovement != null)
         {
             playerMovement.OnMoving -= movingHandler;
+            playerMovement.OnJump -= handlePlayerJumping;
+            playerMovement.OnWallJump -= handlePlayerJumping;
         }
 
         if (playerAttack != null)
@@ -69,7 +76,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerHealth != null)
         {
-            playerHealth.Damaged -= damagedHandler;
+            playerHealth.OnDamaged -= damagedHandler;
         }
     }
 
@@ -113,12 +120,29 @@ public class PlayerAnimationHandler : MonoBehaviour
         hurtRoutine = StartCoroutine(PlayHurtState());
     }
 
+    public void handlePlayerJumping(bool isJumping)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        StartCoroutine(PlayJumpState());
+    }
+
     IEnumerator PlayHurtState()
     {
         animator.SetBool(isHurtParameter, true);
         yield return new WaitForSeconds(hurtDuration);
         animator.SetBool(isHurtParameter, false);
         hurtRoutine = null;
+    }
+
+    IEnumerator PlayJumpState()
+    {
+        animator.SetBool("isJumping", true);
+        yield return new WaitForSeconds(jumpDuration);
+        animator.SetBool("isJumping", false);
     }
 
 }

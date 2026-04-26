@@ -1,13 +1,12 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-public class CameraShakeManager : MonoBehaviour, ICameraImpulseShaker
+public class CameraShakeManager : MonoBehaviour
 {
     public static CameraShakeManager instance;
 
     public PlayerHealth playerHealth;
     public float globalShakeForce = 1f;
-    public float GlobalShakeForce => globalShakeForce;
 
     void Awake()
     {
@@ -26,7 +25,7 @@ public class CameraShakeManager : MonoBehaviour, ICameraImpulseShaker
     {
         if (playerHealth != null)
         {
-            playerHealth.Damaged += HandlePlayerDamaged;
+            playerHealth.OnDamaged += HandlePlayerDamaged;
         }
     }
 
@@ -34,7 +33,7 @@ public class CameraShakeManager : MonoBehaviour, ICameraImpulseShaker
     {
         if (playerHealth != null)
         {
-            playerHealth.Damaged -= HandlePlayerDamaged;
+            playerHealth.OnDamaged -= HandlePlayerDamaged;
         }
     }
 
@@ -50,6 +49,6 @@ public class CameraShakeManager : MonoBehaviour, ICameraImpulseShaker
 
     public void CameraShake(CinemachineImpulseSource impulseSource)
     {
-        impulseSource.GenerateImpulseWithForce(GlobalShakeForce);
+        impulseSource.GenerateImpulseWithForce(globalShakeForce);
     }
 }

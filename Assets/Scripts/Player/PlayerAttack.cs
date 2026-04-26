@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour, IAttackController
 {
-    public static event Action<bool> OnAttack;
+    public static event Action<float> OnAttack;
     public static event Action OnAttackStarted;
     public static event Action OnAttackEnded;
     public event Action<bool> AttackStateChanged;
-
+    
+    public float damageAmount = 25f;
     public Collider2D hitBox;
     private bool isAttacking;
     public bool IsAttacking => isAttacking;
@@ -100,7 +101,7 @@ public class PlayerAttack : MonoBehaviour, IAttackController
     {
         canAttack = false;
         AttackStateChanged?.Invoke(isAttacking);
-        OnAttack?.Invoke(isAttacking);
+        OnAttack?.Invoke(damageAmount);
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
     }
