@@ -7,7 +7,6 @@ public class PlayerWallCheck : MonoBehaviour, IWallContactSensor
 
     public Collider2D wallCheckCollider;
     public Transform playerRoot;
-
     private bool isTouchingWall;
     private int wallSide;
     public bool IsTouchingWall => isTouchingWall;

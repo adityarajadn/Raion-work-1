@@ -8,6 +8,7 @@ public class PlayerAnimationHandler : MonoBehaviour
     private PlayerMovement playerMovement;
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
+    private PlayerWallCheck playerWallCheck;
 
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
@@ -32,6 +33,7 @@ public class PlayerAnimationHandler : MonoBehaviour
         playerMovement = GetComponent<PlayerMovement>();
         playerAttack = GetComponent<PlayerAttack>();
         playerHealth = GetComponent<PlayerHealth>();
+        playerWallCheck = GetComponent<PlayerWallCheck>();
 
         movingHandler = HandleMovingChanged;
         attackHandler = HandleAttackChanged;
@@ -57,6 +59,11 @@ public class PlayerAnimationHandler : MonoBehaviour
         {
             playerHealth.OnDamaged += damagedHandler;
         }
+
+        if (playerWallCheck != null)
+        {
+            playerWallCheck.WallContactChanged += HandleWallContactChanged;
+        }
         
     }
 
@@ -78,6 +85,21 @@ public class PlayerAnimationHandler : MonoBehaviour
         {
             playerHealth.OnDamaged -= damagedHandler;
         }
+
+        if (playerWallCheck != null)
+        {
+            playerWallCheck.WallContactChanged -= HandleWallContactChanged;
+        }
+    }
+
+    void HandleWallContactChanged(bool isTouchingWall, int wallSide)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        animator.SetBool("isOnWall", isTouchingWall);
     }
 
     void HandleMovingChanged(bool isMoving)

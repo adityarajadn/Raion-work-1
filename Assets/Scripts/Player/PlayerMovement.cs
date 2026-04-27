@@ -96,7 +96,7 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
 
     void HandleInput()
     {
-        if (!canInput)
+        if (!canInput && !isTouchingWall)
         {
             // dir = Vector2.zero;
             return;
@@ -210,6 +210,7 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
     {
         isTouchingWall = touchingWall;
         wallSide = side;
+        rb.gravityScale = isTouchingWall ? 0f : originalGravityScale;
     }
 
     void StartDash()
