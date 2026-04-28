@@ -29,7 +29,7 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
     {
         if (playerHealth != null)
         {
-            playerHealth.OnDamaged += HandleDamageEvent;
+            PlayerHealth.OnDamaged += HandleDamageEvent;
         }
     }
 
@@ -37,7 +37,7 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
     {
         if (playerHealth != null)
         {
-            playerHealth.OnDamaged -= HandleDamageEvent;
+            PlayerHealth.OnDamaged -= HandleDamageEvent;
         }
     }
 

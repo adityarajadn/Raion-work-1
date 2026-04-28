@@ -81,7 +81,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerHealth != null)
         {
-            playerHealth.OnDamaged += damagedHandler;
+            PlayerHealth.OnDamaged += damagedHandler;
         }
 
         if (playerWallCheck != null)
@@ -111,7 +111,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerHealth != null)
         {
-            playerHealth.OnDamaged -= damagedHandler;
+            PlayerHealth.OnDamaged -= damagedHandler;
         }
 
         if (playerWallCheck != null)

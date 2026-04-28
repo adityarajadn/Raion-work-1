@@ -25,7 +25,7 @@ public class CameraShakeManager : MonoBehaviour
     {
         if (playerHealth != null)
         {
-            playerHealth.OnDamaged += HandlePlayerDamaged;
+            PlayerHealth.OnDamaged += HandlePlayerDamaged;
         }
     }
 
@@ -33,7 +33,7 @@ public class CameraShakeManager : MonoBehaviour
     {
         if (playerHealth != null)
         {
-            playerHealth.OnDamaged -= HandlePlayerDamaged;
+            PlayerHealth.OnDamaged -= HandlePlayerDamaged;
         }
     }
 

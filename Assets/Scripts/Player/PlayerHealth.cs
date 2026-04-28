@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour
 {
     public event Action<bool> OnDied;
-    public event Action<float, float> OnDamaged;
+    public static event Action<float, float> OnDamaged;
 
     public CinemachineImpulseSource impulseSource;
     public float currentHealth;
@@ -54,6 +54,7 @@ public class PlayerHealth : MonoBehaviour
         currentHealth -= damage;
         checkDeath();
         OnDamaged?.Invoke(currentHealth, maxHealth);
+        Debug.Log("Current Health: " + currentHealth);
     }
 
     void checkDeath()
