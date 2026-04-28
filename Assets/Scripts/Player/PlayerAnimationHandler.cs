@@ -9,18 +9,21 @@ public class PlayerAnimationHandler : MonoBehaviour
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
     private PlayerWallCheck playerWallCheck;
+    private PlayerParry playerParry;
 
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
     [SerializeField] private string isHurtParameter = "isHurt";
     [SerializeField] private string isAttackingParameter = "isAttacking";
+    [SerializeField] private string isParryingParameter = "isParrying";
+    [SerializeField] private string isOnWallParameter = "isOnWall";
     [SerializeField] private float hurtDuration = 0.15f;
     [SerializeField] private float jumpDuration = 0.1f;
 
     private Action<bool> movingHandler;
     private Action<bool> attackHandler;
     private Action<float, float> damagedHandler;
-    private Coroutine hurtRoutine;
+    private Action<bool> parryHandler;
 
 
     void Awake()
@@ -30,14 +33,36 @@ public class PlayerAnimationHandler : MonoBehaviour
             animator = GetComponent<Animator>();
         }
 
-        playerMovement = GetComponent<PlayerMovement>();
-        playerAttack = GetComponent<PlayerAttack>();
-        playerHealth = GetComponent<PlayerHealth>();
-        playerWallCheck = GetComponent<PlayerWallCheck>();
+        if (playerMovement == null)
+        {
+            playerMovement = GetComponent<PlayerMovement>();
+        }
+
+        if (playerAttack == null)
+        {
+            playerAttack = GetComponent<PlayerAttack>();
+        }
+
+        if (playerHealth == null)
+        {
+            playerHealth = GetComponent<PlayerHealth>();
+        }
+
+        if (playerWallCheck == null)
+        {
+            playerWallCheck = GetComponent<PlayerWallCheck>();
+        }
+
+        if (playerParry == null)
+        {
+            playerParry = GetComponent<PlayerParry>();
+        }
 
         movingHandler = HandleMovingChanged;
         attackHandler = HandleAttackChanged;
         damagedHandler = HandleDamaged;
+        parryHandler = HandleParryingChanged;
+
     }
 
     void OnEnable()
@@ -46,7 +71,6 @@ public class PlayerAnimationHandler : MonoBehaviour
         {
             playerMovement.OnMoving += movingHandler;
             playerMovement.OnJump += handlePlayerJumping;
-            playerMovement.OnWallJump += handlePlayerJumping;
         }
 
         if (playerAttack != null)
@@ -62,7 +86,12 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerWallCheck != null)
         {
-            playerWallCheck.WallContactChanged += HandleWallContactChanged;
+            playerWallCheck.OnWallContact += HandleWallContactChanged;
+        }
+
+        if (playerParry != null)
+        {
+            playerParry.OnParry += parryHandler;
         }
         
     }
@@ -73,7 +102,6 @@ public class PlayerAnimationHandler : MonoBehaviour
         {
             playerMovement.OnMoving -= movingHandler;
             playerMovement.OnJump -= handlePlayerJumping;
-            playerMovement.OnWallJump -= handlePlayerJumping;
         }
 
         if (playerAttack != null)
@@ -88,18 +116,23 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerWallCheck != null)
         {
-            playerWallCheck.WallContactChanged -= HandleWallContactChanged;
+            playerWallCheck.OnWallContact -= HandleWallContactChanged;
+        }
+
+        if (playerParry != null)
+        {
+            playerParry.OnParry -= parryHandler;
         }
     }
 
-    void HandleWallContactChanged(bool isTouchingWall, int wallSide)
+    void HandleWallContactChanged(bool isTouchingWall, string wallSide)
     {
         if (animator == null)
         {
             return;
         }
 
-        animator.SetBool("isOnWall", isTouchingWall);
+        animator.SetBool(isOnWallParameter, isTouchingWall);
     }
 
     void HandleMovingChanged(bool isMoving)
@@ -112,14 +145,25 @@ public class PlayerAnimationHandler : MonoBehaviour
         animator.SetBool(isRunningParameter, isMoving);
     }
 
-    void HandleAttackChanged(bool isAttacking)
+    void HandleParryingChanged(bool isParrying)
     {
         if (animator == null)
         {
             return;
         }
 
-        animator.SetBool(isAttackingParameter, isAttacking);
+        Debug.Log("Parry State Changed: " + isParrying);
+        animator.SetBool(isParryingParameter, isParrying);
+    }
+
+    void HandleAttackChanged(bool isAttacking)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+        animator.SetBool(isAttackingParameter, isAttacking);    
+        
     }
 
     void HandleDamaged(float currentHealth, float maxHealth)
@@ -134,12 +178,7 @@ public class PlayerAnimationHandler : MonoBehaviour
             return;
         }
 
-        if (hurtRoutine != null)
-        {
-            StopCoroutine(hurtRoutine);
-        }
-
-        hurtRoutine = StartCoroutine(PlayHurtState());
+        StartCoroutine(PlayHurtState());
     }
 
     public void handlePlayerJumping(bool isJumping)
@@ -157,7 +196,6 @@ public class PlayerAnimationHandler : MonoBehaviour
         animator.SetBool(isHurtParameter, true);
         yield return new WaitForSeconds(hurtDuration);
         animator.SetBool(isHurtParameter, false);
-        hurtRoutine = null;
     }
 
     IEnumerator PlayJumpState()

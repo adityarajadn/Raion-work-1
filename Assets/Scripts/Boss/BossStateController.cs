@@ -33,14 +33,12 @@ public class BossStateController : MonoBehaviour
 
     BossPhase currentPhase = BossPhase.Phase1;
 
-    BossMovement bossMovement;
     BossHealth bossHealth;
 
     Coroutine patternRoutine;
 
     void Awake()
     {
-        bossMovement = GetComponent<BossMovement>();
         bossHealth = GetComponent<BossHealth>();
     }
 
@@ -139,7 +137,7 @@ public class BossStateController : MonoBehaviour
 
     IEnumerator BasicAttack()
     {
-        Debug.Log("Basic Attack");
+        // Debug.Log("Basic Attack");
 
         ResetAllAttackState();
         OnBasicAttack?.Invoke(true);
@@ -152,7 +150,7 @@ public class BossStateController : MonoBehaviour
 
     IEnumerator Pattern2()
     {
-        Debug.Log("Pattern2");
+        // Debug.Log("Pattern2");
 
         ResetAllAttackState();
         OnPattern2?.Invoke(true);
@@ -165,7 +163,7 @@ public class BossStateController : MonoBehaviour
 
     IEnumerator Pattern3()
     {
-        Debug.Log("Pattern3");
+        // Debug.Log("Pattern3");
 
         ResetAllAttackState();
         OnPattern3?.Invoke(true);

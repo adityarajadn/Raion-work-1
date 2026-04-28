@@ -1,6 +1,7 @@
 // ==============================
 // BossAnimationController.cs
 // ==============================
+using System;
 using UnityEngine;
 
 public class BossAnimationController : MonoBehaviour
@@ -13,6 +14,9 @@ public class BossAnimationController : MonoBehaviour
     public Animator animator;
 
     BossStateController bossStateController;
+
+    public event Action<bool> isHandlingAttack;
+
 
     void Awake()
     {
@@ -45,15 +49,18 @@ public class BossAnimationController : MonoBehaviour
     void HandleBasicAttack(bool state)
     {
         animator.SetBool(isAttackingParameter, state);
+        isHandlingAttack?.Invoke(state);
     }
 
     void HandlePattern2(bool state)
     {
         animator.SetBool(isPattern2Parameter, state);
+        isHandlingAttack?.Invoke(state);
     }
 
     void HandlePattern3(bool state)
     {
         animator.SetBool(isPattern3Parameter, state);
+        isHandlingAttack?.Invoke(state);
     }
 }

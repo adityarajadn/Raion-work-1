@@ -1,19 +1,17 @@
 using System;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour, IMovementController, IDashController
+public class PlayerMovement : MonoBehaviour
 {
     public event Action<bool> OnJump;
-    public event Action<bool> OnWallJump;
-    public event Action<bool> OnDashStateChanged;
     public event Action<bool> DashStateChanged;
     public event Action<bool> OnMoving;
+    public static event Action<bool> PlayerFacingRight;
+    public PlayerWallCheck playerWallCheck;
 
     public float speed = 10f;
     private Vector2 dir;
-    public Vector2 MoveDirection => dir;
     public Rigidbody2D rb;
-    public PlayerWallCheck wallCheck;
 
     [Header("Jump")]
     public float jumpForce = 5f;
@@ -21,17 +19,14 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
 
     [Header("Facing")]
     public bool facingRight = true;
-    public bool FacingRight => facingRight;
 
     [Header("Dash")]
     public float dashSpeed = 15f;
     public float dashDuration = 0.02f;
     public float dashCooldown = 0.75f;
     private bool isDashing;
-    public bool IsDashing => isDashing;
     private float dashTimer;
     private float nextDashTime;
-    private float originalGravityScale;
     private bool canInput = true;
 
     [Header("Air Control")]
@@ -42,11 +37,20 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
     [SerializeField] private int maxJump = 2;
     private int currentJump;
 
-    [Header("Wall Movement")]
-    public float wallJumpForce = 5f;
-    [SerializeField] private bool isTouchingWall;
-    [SerializeField] private int wallSide;
+    // Wall Jump
+    public float wallJumpForceX = 10f;
+    public float wallJumpForceY = 5f;
+    string wallSide;
+    public bool canWallJump; // nilai nya didapat dari PlayerWallCheck
+    public float originalGravityScale;
 
+    void OnEnable() {
+        playerWallCheck.OnWallContact += HandleWallContact;
+    }
+
+    void OnDisable() {
+        playerWallCheck.OnWallContact -= HandleWallContact;
+    }
     void Awake()
     {
         if (rb == null)
@@ -54,31 +58,7 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
             rb = GetComponent<Rigidbody2D>();
         }
 
-        if (wallCheck == null)
-        {
-            wallCheck = GetComponentInChildren<PlayerWallCheck>();
-        }
-
-        if (rb != null)
-        {
-            originalGravityScale = rb.gravityScale;
-        }
-    }
-
-    void OnEnable()
-    {
-        if (wallCheck != null)
-        {
-            wallCheck.WallContactChanged += HandleWallContactChanged;
-        }
-    }
-
-    void OnDisable()
-    {
-        if (wallCheck != null)
-        {
-            wallCheck.WallContactChanged -= HandleWallContactChanged;
-        }
+        originalGravityScale = rb.gravityScale;
     }
 
     void Update()
@@ -88,6 +68,7 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
         HandleJumpInput();
         Flip();
     }
+    
 
     void FixedUpdate()
     {
@@ -96,12 +77,12 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
 
     void HandleInput()
     {
-        if (!canInput && !isTouchingWall)
+        if (!canInput)
         {
-            // dir = Vector2.zero;
             return;
         }
 
+        // Handle horizontal input
         if (Input.GetKey(KeyCode.D))
         {
             dir.x = 1f;
@@ -117,6 +98,9 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
             dir.x = 0f;
         }
 
+        HandleJumpInput();
+
+        // Handle dash input
         if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && Time.time >= nextDashTime)
         {
             StartDash();
@@ -152,12 +136,13 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
             return;
         }
 
-        if (CanWallJump())
+        if (canWallJump)
         {
-            PerformWallJump();
+            performJumpWall();
             return;
         }
 
+        // Normal jump atau double jump
         if (currentJump < maxJump)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
@@ -169,48 +154,34 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
         }
     }
 
-    bool CanWallJump()
+    void HandleWallContact(bool isTouchingWall, string wallSide)
     {
-        if (!isTouchingWall || isGrounded || isDashing || wallSide == 0)
+        canWallJump = isTouchingWall;
+        this.wallSide = wallSide;
+    }
+
+    void performJumpWall()
+    {
+        if (!canWallJump || isGrounded)
         {
-            return false;
+            return;
         }
 
-        bool holdingTowardLeftWall = wallSide == -1 && Input.GetKey(KeyCode.A);
-        bool holdingTowardRightWall = wallSide == 1 && Input.GetKey(KeyCode.D);
-
-        bool usingFacingDirection = !Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.D) &&
-                                    ((wallSide == -1 && !facingRight) || (wallSide == 1 && facingRight));
-
-        return holdingTowardLeftWall || holdingTowardRightWall || usingFacingDirection;
-    }
-
-    void PerformWallJump()
-    {
-        float jumpDirectionX = wallSide == -1 ? 1f : -1f;
-        rb.linearVelocity = new Vector2(jumpDirectionX * wallJumpForce, jumpForce);
-
+        float jumpDir = wallSide == "Right" ? -1f : 1f; // Melompat ke arah berlawanan dari dinding
+        rb.linearVelocity = new Vector2(0f, 0f); // Reset velocity sebelum
+        rb.AddForce(new Vector2(jumpDir * wallJumpForceX, wallJumpForceY), ForceMode2D.Impulse);
+        canWallJump = false; // Mencegah wall jump berulang tanpa menyentuh tanah
+        OnJump?.Invoke(true);
         facingRight = !facingRight;
-
-        isTouchingWall = false;
-        wallSide = 0;
-        isGrounded = false;
-        currentJump = 1;
-        OnWallJump?.Invoke(true);
     }
+
 
     void Flip()
     {
         Vector3 scale = transform.localScale;
         scale.x = facingRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
         transform.localScale = scale;
-    }
-
-    void HandleWallContactChanged(bool touchingWall, int side)
-    {
-        isTouchingWall = touchingWall;
-        wallSide = side;
-        rb.gravityScale = isTouchingWall ? 0f : originalGravityScale;
+        PlayerFacingRight?.Invoke(facingRight);
     }
 
     void StartDash()
@@ -221,7 +192,6 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
         nextDashTime = Time.time + dashCooldown;
         rb.gravityScale = 0f;
         DashStateChanged?.Invoke(true);
-        OnDashStateChanged?.Invoke(true);
     }
 
     void DashTick()
@@ -242,7 +212,6 @@ public class PlayerMovement : MonoBehaviour, IMovementController, IDashControlle
             rb.gravityScale = originalGravityScale;
             // rb.linearVelocity = new Vector2(dir.x * speed, rb.linearVelocity.y);
             DashStateChanged?.Invoke(false);
-            OnDashStateChanged?.Invoke(false);
         }
     }
 

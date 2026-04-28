@@ -4,79 +4,50 @@ using UnityEngine;
 
 public class PlayerParry : MonoBehaviour
 {
-    public Collider2D parryCollider;
-    public bool isParrying;
-    public bool parrySuccess;
+    public bool isParrying = false;
+    public bool canParry = false;
     public float parryDuration = 0.3f;
 
     public event Action<bool> OnParry;
-    private Coroutine parryRoutine;
-
-    void Awake()
-    {
-        if (parryCollider != null)
-        {
-            parryCollider.enabled = false;
-        }
-    }
 
     void Update()
     {
-        HandleInput();
-    }
-
-    void HandleInput()
-    {
-        if (Input.GetKeyDown(KeyCode.E) && !isParrying)
+        if (Input.GetKeyDown(KeyCode.E) && !isParrying && canParry)
         {
-            parryRoutine = StartCoroutine(ParryRoutine());
+            StartCoroutine(ParryRoutine());
         }
     }
 
     IEnumerator ParryRoutine()
     {
         isParrying = true;
-        parrySuccess = false;
+        OnParry?.Invoke(true);
 
-        if (parryCollider != null)
-        {
-            parryCollider.enabled = true;
-        }
+        Debug.Log("PARRY START");
 
         yield return new WaitForSeconds(parryDuration);
 
         isParrying = false;
-        if (parryCollider != null)
-        {
-            parryCollider.enabled = false;
-        }
+        OnParry?.Invoke(false);
 
-        OnParry?.Invoke(parrySuccess);
-        parryRoutine = null;
+        Debug.Log("PARRY END");
     }
 
-    public bool TryParry()
+    void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!isParrying)
+        if (collision.CompareTag("EnemyAttackHitBox"))
         {
-            return false;
+            canParry = true;
+            Debug.Log("Can Parry");
         }
+    }
 
-        parrySuccess = true;
-        isParrying = false;
-
-        if (parryCollider != null)
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("EnemyAttackHitBox"))
         {
-            parryCollider.enabled = false;
+            canParry = false;
+            Debug.Log("Can't Parry");
         }
-
-        if (parryRoutine != null)
-        {
-            StopCoroutine(parryRoutine);
-            parryRoutine = null;
-        }
-
-        OnParry?.Invoke(true);
-        return true;
     }
 }

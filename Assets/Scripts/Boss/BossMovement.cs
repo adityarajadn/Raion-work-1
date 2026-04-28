@@ -1,10 +1,8 @@
-using System;
 using UnityEngine;
 
 public class BossMovement : MonoBehaviour
 {
     public float moveSpeed = 10f;
-    public Rigidbody2D rb;
     public Transform target;
 
     bool canMove = true;
@@ -12,14 +10,14 @@ public class BossMovement : MonoBehaviour
 
     public float stopDistance = 10f;
 
-    public event Action<bool> OnMoving;
-    public event Action<bool> CanAttack;
+    bool isHandlingAttack = false;
+
+    BossAnimationController bossAnimationController;
 
     void Awake()
     {
-        if (rb == null)
-            rb = GetComponent<Rigidbody2D>();
-
+        if (bossAnimationController == null)
+            bossAnimationController = GetComponent<BossAnimationController>();
         findTarget();
     }
 
@@ -27,7 +25,42 @@ public class BossMovement : MonoBehaviour
     {
         countDistance();   // update jarak terus
         move();
-        flip();
+        flip(isHandlingAttack);
+    }
+
+    void OnEnable()
+    {
+        bossAnimationController.isHandlingAttack += setIsHandlingAttack;
+    }
+
+    void OnDisable()
+    {
+        bossAnimationController.isHandlingAttack -= setIsHandlingAttack;
+    }
+
+    void setIsHandlingAttack(bool value)
+    {
+        // hanya saat mulai attack (false -> true)
+        if (value && !isHandlingAttack)
+        {
+            FaceTargetOnce();
+        }
+
+        isHandlingAttack = value;
+    }
+
+    void FaceTargetOnce()
+    {
+        if (target == null) return;
+
+        Vector3 scale = transform.localScale;
+
+        if (transform.position.x < target.position.x)
+            scale.x = -Mathf.Abs(scale.x);
+        else
+            scale.x = Mathf.Abs(scale.x);
+
+        transform.localScale = scale;
     }
 
     void move()
@@ -41,8 +74,6 @@ public class BossMovement : MonoBehaviour
             target.position,
             moveSpeed * Time.deltaTime
         );
-
-        OnMoving?.Invoke(true);
     }
 
     void findTarget()
@@ -70,21 +101,19 @@ public class BossMovement : MonoBehaviour
         if (distanceToTarget <= stopDistance)
         {
             canMove = false;
-            OnMoving?.Invoke(false);
-            CanAttack?.Invoke(true);
         }
         else
         {
             canMove = true;
-            CanAttack?.Invoke(false);
         }
     }
 
-    void flip()
+    void flip(bool isHandlingAttack)
     {
         if (target == null) return;
+        if (isHandlingAttack) return;
 
-        Vector3 scale = transform.localScale;
+        Vector3 scale = transform.localScale; // ambil scale sekarang
 
         if (transform.position.x < target.position.x)
             scale.x = -Mathf.Abs(scale.x);
