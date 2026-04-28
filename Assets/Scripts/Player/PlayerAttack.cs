@@ -12,10 +12,11 @@ public class PlayerAttack : MonoBehaviour
     public float damageAmount = 25f;
     public Collider2D hitBox;
     private bool isAttacking = false;
-    private float attackCooldown = 0.5f;
+    public float attackCooldown = 0.5f;
     public bool canAttack = true;
 
     public float attackDuration = 0.2f;
+    public PlayerParry playerParry;
 
 
     void Awake()
@@ -23,6 +24,39 @@ public class PlayerAttack : MonoBehaviour
         if (hitBox != null)
         {
             hitBox.enabled = false;
+        }
+        if (playerParry == null)
+        {
+            playerParry = GetComponent<PlayerParry>();
+        }
+    }
+
+    void OnEnable()
+    {
+        if (playerParry != null)
+        {
+            playerParry.OnParry += HandleParry;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (playerParry != null)
+        {
+            playerParry.OnParry -= HandleParry;
+        }
+    }
+
+    void HandleParry(bool isParrying)
+    {
+        // When parry starts, trigger a short attack state so hitbox & damage event fire.
+        if (isParrying)
+        {
+            SetAttackState(true);
+        }
+        else
+        {
+            SetAttackState(false);
         }
     }
 
@@ -51,7 +85,7 @@ public class PlayerAttack : MonoBehaviour
     // Method untuk mengubah state serangan dan memanggil event terkait
     void SetAttackState(bool value)
     {
-        if (isAttacking == value)
+        if (isAttacking == value) 
         {
             return;
         }

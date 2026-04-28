@@ -20,17 +20,13 @@ public class PlayerParry : MonoBehaviour
 
     IEnumerator ParryRoutine()
     {
-        isParrying = true;
-        OnParry?.Invoke(true);
-
-        Debug.Log("PARRY START");
+        isParrying = true; // player ga dibolehin input E lagi sampe parry selesai
+        OnParry?.Invoke(isParrying);
 
         yield return new WaitForSeconds(parryDuration);
 
         isParrying = false;
-        OnParry?.Invoke(false);
-
-        Debug.Log("PARRY END");
+        OnParry?.Invoke(isParrying);
     }
 
     void OnTriggerEnter2D(Collider2D collision)
@@ -38,7 +34,7 @@ public class PlayerParry : MonoBehaviour
         if (collision.CompareTag("EnemyAttackHitBox"))
         {
             canParry = true;
-            Debug.Log("Can Parry");
+            // Debug.Log("Can Parry");
         }
     }
 
@@ -47,7 +43,7 @@ public class PlayerParry : MonoBehaviour
         if (collision.CompareTag("EnemyAttackHitBox"))
         {
             canParry = false;
-            Debug.Log("Can't Parry");
+            // Debug.Log("Can't Parry");
         }
     }
 }

@@ -9,7 +9,7 @@ public class PlayerAnimationHandler : MonoBehaviour
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
     private PlayerWallCheck playerWallCheck;
-    private PlayerParry playerParry;
+    public PlayerParry playerParry;
 
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
@@ -23,9 +23,7 @@ public class PlayerAnimationHandler : MonoBehaviour
     private Action<bool> movingHandler;
     private Action<bool> attackHandler;
     private Action<float, float> damagedHandler;
-    private Action<bool> parryHandler;
-
-
+    
     void Awake()
     {
         if (animator == null)
@@ -55,13 +53,15 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerParry == null)
         {
-            playerParry = GetComponent<PlayerParry>();
+            playerParry = GameObject.FindGameObjectWithTag("PlayerParry").GetComponent<PlayerParry>();
         }
 
         movingHandler = HandleMovingChanged;
         attackHandler = HandleAttackChanged;
         damagedHandler = HandleDamaged;
-        parryHandler = HandleParryingChanged;
+
+
+        this.enabled = true;
 
     }
 
@@ -91,7 +91,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerParry != null)
         {
-            playerParry.OnParry += parryHandler;
+            playerParry.OnParry += HandleParryingChanged;
         }
         
     }
@@ -121,7 +121,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerParry != null)
         {
-            playerParry.OnParry -= parryHandler;
+            playerParry.OnParry -= HandleParryingChanged;
         }
     }
 
@@ -152,8 +152,8 @@ public class PlayerAnimationHandler : MonoBehaviour
             return;
         }
 
-        Debug.Log("Parry State Changed: " + isParrying);
         animator.SetBool(isParryingParameter, isParrying);
+        // Debug.Log("Success Parry | " + isParrying);
     }
 
     void HandleAttackChanged(bool isAttacking)
