@@ -91,7 +91,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerParry != null)
         {
-            playerParry.OnParry += HandleParryingChanged;
+            PlayerParry.OnParry += HandleParryingChanged;
         }
         
     }
@@ -121,7 +121,7 @@ public class PlayerAnimationHandler : MonoBehaviour
 
         if (playerParry != null)
         {
-            playerParry.OnParry -= HandleParryingChanged;
+            PlayerParry.OnParry -= HandleParryingChanged;
         }
     }
 

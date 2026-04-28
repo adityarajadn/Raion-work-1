@@ -8,7 +8,7 @@ public class PlayerParry : MonoBehaviour
     public bool canParry = false;
     public float parryDuration = 0.3f;
 
-    public event Action<bool> OnParry;
+    public static event Action<bool> OnParry;
 
     void Update()
     {
