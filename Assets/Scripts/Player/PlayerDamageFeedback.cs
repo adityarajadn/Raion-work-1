@@ -1,9 +1,8 @@
 using System.Collections;
 using UnityEngine;
 
-public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
+public class PlayerDamageFeedback : MonoBehaviour
 {
-    public PlayerHealth playerHealth;
     public SpriteRenderer targetRenderer;
     public Color normalColor = Color.white;
     public Color damageColor = Color.red;
@@ -14,11 +13,6 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
 
     void Awake()
     {
-        if (playerHealth == null)
-        {
-            playerHealth = GetComponent<PlayerHealth>();
-        }
-
         if (targetRenderer == null)
         {
             targetRenderer = GetComponent<SpriteRenderer>();
@@ -27,18 +21,12 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
 
     void OnEnable()
     {
-        if (playerHealth != null)
-        {
-            PlayerHealth.OnDamaged += HandleDamageEvent;
-        }
+        PlayerHealth.OnDamaged += HandleDamageEvent;
     }
 
     void OnDisable()
     {
-        if (playerHealth != null)
-        {
-            PlayerHealth.OnDamaged -= HandleDamageEvent;
-        }
+        PlayerHealth.OnDamaged -= HandleDamageEvent;
     }
 
     void HandleDamageEvent(float currentHealth, float maxHealth)

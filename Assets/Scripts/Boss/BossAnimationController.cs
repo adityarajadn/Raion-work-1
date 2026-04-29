@@ -2,6 +2,7 @@
 // BossAnimationController.cs
 // ==============================
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class BossAnimationController : MonoBehaviour
@@ -10,40 +11,33 @@ public class BossAnimationController : MonoBehaviour
     public string isAttackingParameter = "isAttacking";
     public string isPattern2Parameter = "isPattern2";
     public string isPattern3Parameter = "isPattern3";
+    public string isHurtParameter = "isHurt";
 
+    public float hurtDuration = 0.15f;
     public Animator animator;
-
-    BossStateController bossStateController;
-
-    public event Action<bool> isHandlingAttack;
+    public static event Action<bool> isHandlingAttack;
 
 
     void Awake()
     {
         if (animator == null)
             animator = GetComponent<Animator>();
-
-        bossStateController = GetComponent<BossStateController>();
     }
 
     void OnEnable()
     {
-        if (bossStateController != null)
-        {
-            bossStateController.OnBasicAttack += HandleBasicAttack;
-            bossStateController.OnPattern2 += HandlePattern2;
-            bossStateController.OnPattern3 += HandlePattern3;
-        }
+        BossStateController.OnBasicAttack += HandleBasicAttack;
+        BossStateController.OnPattern2 += HandlePattern2;
+        BossStateController.OnPattern3 += HandlePattern3;
+        BossHealth.OnDamaged += HandleHurt;
     }
 
     void OnDisable()
     {
-        if (bossStateController != null)
-        {
-            bossStateController.OnBasicAttack -= HandleBasicAttack;
-            bossStateController.OnPattern2 -= HandlePattern2;
-            bossStateController.OnPattern3 -= HandlePattern3;
-        }
+        BossStateController.OnBasicAttack -= HandleBasicAttack;
+        BossStateController.OnPattern2 -= HandlePattern2;
+        BossStateController.OnPattern3 -= HandlePattern3;
+        BossHealth.OnDamaged -= HandleHurt;
     }
 
     void HandleBasicAttack(bool state)
@@ -62,5 +56,16 @@ public class BossAnimationController : MonoBehaviour
     {
         animator.SetBool(isPattern3Parameter, state);
         isHandlingAttack?.Invoke(state);
+    }
+
+    void HandleHurt(float currentHealth, float maxHealth)
+    {
+        StartCoroutine(HurtAnimation(currentHealth, maxHealth));
+    }
+    
+    IEnumerator HurtAnimation(float currentHealth, float maxHealth) {
+        animator.SetBool(isHurtParameter, true);
+        yield return new WaitForSeconds(hurtDuration);
+        animator.SetBool(isHurtParameter, false);
     }
 }

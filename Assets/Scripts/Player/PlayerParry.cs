@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class PlayerParry : MonoBehaviour
@@ -7,7 +8,7 @@ public class PlayerParry : MonoBehaviour
     public bool isParrying = false;
     public bool canParry = false;
     public float parryDuration = 0.3f;
-
+    public CinemachineImpulseSource impulseSource;
     public static event Action<bool> OnParry;
 
     void Update()

@@ -9,17 +9,12 @@ public class CooldownUI : MonoBehaviour
     public TextMeshProUGUI cooldownText;
     public Image ui;
     public PlayerAttack playerAttack;
-
+    public PlayerMovement playerMovement;
     private Coroutine cooldownRoutine;
     public string condition;
 
     void Awake()
     {
-        if (playerAttack == null)
-        {
-            playerAttack = FindFirstObjectByType<PlayerAttack>();
-        }
-
         if (cooldownText != null)
         {
             cooldownText.text = "";
@@ -30,19 +25,25 @@ public class CooldownUI : MonoBehaviour
     {
         if (condition == "BasicAttack")
         {
-            PlayerAttack.OnAttack += UpdateCooldownUI;    
+            PlayerAttack.OnAttack += UpdateCooldownUIAttack;    
         }
         
         if (condition == "Parry")
         {
-            PlayerParry.OnParry += UpdateCooldownUI;
+            PlayerParry.OnParry += UpdateCooldownUIParry;
+        }
+
+        if (condition == "Dash")
+        {
+            PlayerMovement.DashStateChanged += UpdateCooldownUIDash;
         }
     }
 
     void OnDisable()
     {
-        PlayerAttack.OnAttack -= UpdateCooldownUI;
-        PlayerParry.OnParry -= UpdateCooldownUI;
+        PlayerAttack.OnAttack -= UpdateCooldownUIAttack;
+        PlayerParry.OnParry -= UpdateCooldownUIParry;
+        PlayerMovement.DashStateChanged -= UpdateCooldownUIDash;
 
         if (cooldownRoutine != null)
         {
@@ -51,7 +52,7 @@ public class CooldownUI : MonoBehaviour
         }
     }
 
-    void UpdateCooldownUI(float damage)
+    void UpdateCooldownUIAttack(float damage)
     {
         if (playerAttack == null || cooldownText == null)
         {
@@ -66,7 +67,7 @@ public class CooldownUI : MonoBehaviour
         cooldownRoutine = StartCoroutine(CooldownRoutine(playerAttack.attackCooldown));
     }
 
-    void UpdateCooldownUI(bool isParrying)
+    void UpdateCooldownUIParry(bool isParrying)
     {
         if (playerAttack == null || cooldownText == null)
         {
@@ -79,6 +80,21 @@ public class CooldownUI : MonoBehaviour
         }
 
         cooldownRoutine = StartCoroutine(CooldownRoutine(playerAttack.attackCooldown));
+    }
+
+    void UpdateCooldownUIDash(bool isDashing)
+    {
+        if (playerMovement == null || cooldownText == null)
+        {
+            return;
+        }
+
+        if (cooldownRoutine != null)
+        {
+            StopCoroutine(cooldownRoutine);
+        }
+
+        cooldownRoutine = StartCoroutine(CooldownRoutine(playerMovement.dashCooldown));
     }
 
     IEnumerator CooldownRoutine(float duration)

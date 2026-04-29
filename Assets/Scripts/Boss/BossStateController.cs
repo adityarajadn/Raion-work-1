@@ -17,11 +17,11 @@ public class BossStateController : MonoBehaviour
     public float damagePattern2 = 15;
     public float damagePattern3 = 25;
 
-    public event Action<bool> OnBasicAttack;
+    public static event Action<bool> OnBasicAttack;
     public static event Action<float> basicAttackDamage;
-    public event Action<bool> OnPattern2;
+    public static event Action<bool> OnPattern2;
     public static event Action<float> pattern2Damage;
-    public event Action<bool> OnPattern3;
+    public static event Action<bool> OnPattern3;
     public static event Action<float> pattern3Damage;
 
     enum BossPhase
@@ -33,13 +33,10 @@ public class BossStateController : MonoBehaviour
 
     BossPhase currentPhase = BossPhase.Phase1;
 
-    BossHealth bossHealth;
-
     Coroutine patternRoutine;
 
     void Awake()
     {
-        bossHealth = GetComponent<BossHealth>();
     }
 
     void Start()
@@ -49,20 +46,14 @@ public class BossStateController : MonoBehaviour
 
     void OnEnable()
     {
-        if (bossHealth != null)
-        {
-            bossHealth.OnDamaged += HandleDamaged;
-            bossHealth.OnDied += HandleDie;
-        }
+        BossHealth.OnDamaged += HandleDamaged;
+        BossHealth.OnDied += HandleDie;
     }
 
     void OnDisable()
     {
-        if (bossHealth != null)
-        {
-            bossHealth.OnDamaged -= HandleDamaged;
-            bossHealth.OnDied -= HandleDie;
-        }
+        BossHealth.OnDamaged -= HandleDamaged;
+        BossHealth.OnDied -= HandleDie;
     }
 
     void HandleDie(bool isDie)

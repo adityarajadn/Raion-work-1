@@ -7,7 +7,7 @@ public class PlayerAttack : MonoBehaviour
     public static event Action<float> OnAttack;
     public static event Action OnAttackStarted;
     public static event Action OnAttackEnded;
-    public event Action<bool> AttackStateChanged;
+    public static event Action<bool> AttackStateChanged;
 
     public float damageAmount = 25f;
     public Collider2D hitBox;
@@ -19,6 +19,7 @@ public class PlayerAttack : MonoBehaviour
     public PlayerParry playerParry;
 
     private Coroutine cooldownRoutine;
+    public bool isMoving = false;
 
     void Awake()
     {
@@ -39,6 +40,8 @@ public class PlayerAttack : MonoBehaviour
         {
             PlayerParry.OnParry += HandleParry;
         }
+
+        PlayerMovement.OnMoving += checkMoving;
     }
 
     void OnDisable()
@@ -47,6 +50,8 @@ public class PlayerAttack : MonoBehaviour
         {
             PlayerParry.OnParry -= HandleParry;
         }
+
+        PlayerMovement.OnMoving -= checkMoving;
     }
 
     void HandleParry(bool isParrying)
@@ -57,6 +62,11 @@ public class PlayerAttack : MonoBehaviour
     void Update()
     {
         HandleInput();
+    }
+
+    void checkMoving(bool isMoving)
+    {
+        this.isMoving = isMoving;
     }
 
     void HandleInput()

@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: e02211f457e48e843b852ee9eb405971
+guid: 9a7a1f29fb5442245a20656cd6d7e140
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5547028552509597420
-    second: Tak berjudul263_20260428220359_0
-  - first:
-      213: 4465680508945612940
-    second: Tak berjudul263_20260428220359_1
+      213: -6470460504253458178
+    second: 3_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -116,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Tak berjudul263_20260428220359_0
+      name: 3_0
       rect:
         serializedVersion: 2
-        x: 344
-        y: 278
-        width: 411
-        height: 480
+        x: 0
+        y: 344
+        width: 1280
+        height: 376
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,30 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ce6a84f34110bfc40800000000000000
-      internalID: 5547028552509597420
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Tak berjudul263_20260428220359_1
-      rect:
-        serializedVersion: 2
-        x: 855
-        y: 297
-        width: 411
-        height: 469
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c80c61043c849fd30800000000000000
-      internalID: 4465680508945612940
+      spriteID: ef817ce047e4436a0800000000000000
+      internalID: -6470460504253458178
       vertices: []
       indices: 
       edges: []
@@ -173,8 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Tak berjudul263_20260428220359_0: 5547028552509597420
-      Tak berjudul263_20260428220359_1: 4465680508945612940
+      3_0: -6470460504253458178
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

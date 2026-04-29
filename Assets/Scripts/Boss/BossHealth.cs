@@ -1,14 +1,15 @@
 using System;
 using UnityEngine;
 
-public class BossHealth : MonoBehaviour
+public class BossHealth : DamageableEntity
 {
-    public float currentHealth = 100f;
-    public float maxHealth = 100f;
-    public float damageReceived;
+    public static event Action<bool> OnDied;
+    public static event Action<float, float> OnDamaged;
 
-    public event Action<bool> OnDied;
-    public event Action<float, float> OnDamaged;
+    protected override void Awake()
+    {
+        base.Awake();
+    }
 
     void OnEnable()
     {
@@ -20,36 +21,20 @@ public class BossHealth : MonoBehaviour
         PlayerAttack.OnAttack -= setDamageReceived;
     }
 
-    void Awake()
-    {
-        currentHealth = maxHealth;
-    }
-
-    void takeDamage(float damage)
-    {
-        currentHealth -= damage;
-        checkDeath();
-        OnDamaged?.Invoke(currentHealth, maxHealth);
-        Debug.Log("Boss HP: " + currentHealth);
-    }
-
-    void checkDeath()
-    {
-        if (currentHealth <= 0f)
-        {
-            die();
-        }
-    }
-
     void setDamageReceived(float damage)
     {
         damageReceived = damage;
     }
 
-    void die()
+    protected override void OnDamageTaken(float currentHealth, float maxHealth)
+    {
+        OnDamaged?.Invoke(currentHealth, maxHealth);
+        Debug.Log("Boss HP: " + currentHealth);
+    }
+
+    protected override void Die()
     {
         Debug.Log("Boss defeated!");
-        currentHealth = 0f;
         OnDied?.Invoke(true);
     }
 
@@ -57,7 +42,7 @@ public class BossHealth : MonoBehaviour
     {
         if (collision.CompareTag("PlayerAttackHitBox"))
         {
-            takeDamage(damageReceived);
+            TakeDamage(damageReceived);
         }
     }
 }

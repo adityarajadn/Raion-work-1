@@ -5,11 +5,6 @@ using System.Collections;
 public class PlayerAnimationHandler : MonoBehaviour
 {
     public Animator animator;
-    private PlayerMovement playerMovement;
-    private PlayerAttack playerAttack;
-    private PlayerHealth playerHealth;
-    private PlayerWallCheck playerWallCheck;
-    public PlayerParry playerParry;
 
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
@@ -31,31 +26,6 @@ public class PlayerAnimationHandler : MonoBehaviour
             animator = GetComponent<Animator>();
         }
 
-        if (playerMovement == null)
-        {
-            playerMovement = GetComponent<PlayerMovement>();
-        }
-
-        if (playerAttack == null)
-        {
-            playerAttack = GetComponent<PlayerAttack>();
-        }
-
-        if (playerHealth == null)
-        {
-            playerHealth = GetComponent<PlayerHealth>();
-        }
-
-        if (playerWallCheck == null)
-        {
-            playerWallCheck = GetComponent<PlayerWallCheck>();
-        }
-
-        if (playerParry == null)
-        {
-            playerParry = GameObject.FindGameObjectWithTag("PlayerParry").GetComponent<PlayerParry>();
-        }
-
         movingHandler = HandleMovingChanged;
         attackHandler = HandleAttackChanged;
         damagedHandler = HandleDamaged;
@@ -67,62 +37,22 @@ public class PlayerAnimationHandler : MonoBehaviour
 
     void OnEnable()
     {
-        if (playerMovement != null)
-        {
-            playerMovement.OnMoving += movingHandler;
-            playerMovement.OnJump += handlePlayerJumping;
-        }
-
-        if (playerAttack != null)
-        {
-            playerAttack.AttackStateChanged += attackHandler;
-
-        }
-
-        if (playerHealth != null)
-        {
-            PlayerHealth.OnDamaged += damagedHandler;
-        }
-
-        if (playerWallCheck != null)
-        {
-            playerWallCheck.OnWallContact += HandleWallContactChanged;
-        }
-
-        if (playerParry != null)
-        {
-            PlayerParry.OnParry += HandleParryingChanged;
-        }
-        
+        PlayerMovement.OnMoving += movingHandler;
+        PlayerMovement.OnJump += handlePlayerJumping;
+        PlayerAttack.AttackStateChanged += attackHandler;
+        PlayerHealth.OnDamaged += damagedHandler;
+        PlayerWallCheck.OnWallContact += HandleWallContactChanged;
+        PlayerParry.OnParry += HandleParryingChanged;
     }
 
     void OnDisable()
     {
-        if (playerMovement != null)
-        {
-            playerMovement.OnMoving -= movingHandler;
-            playerMovement.OnJump -= handlePlayerJumping;
-        }
-
-        if (playerAttack != null)
-        {
-            playerAttack.AttackStateChanged -= attackHandler;
-        }
-
-        if (playerHealth != null)
-        {
-            PlayerHealth.OnDamaged -= damagedHandler;
-        }
-
-        if (playerWallCheck != null)
-        {
-            playerWallCheck.OnWallContact -= HandleWallContactChanged;
-        }
-
-        if (playerParry != null)
-        {
-            PlayerParry.OnParry -= HandleParryingChanged;
-        }
+        PlayerMovement.OnMoving -= movingHandler;
+        PlayerMovement.OnJump -= handlePlayerJumping;
+        PlayerAttack.AttackStateChanged -= attackHandler;
+        PlayerHealth.OnDamaged -= damagedHandler;
+        PlayerWallCheck.OnWallContact -= HandleWallContactChanged;
+        PlayerParry.OnParry -= HandleParryingChanged;
     }
 
     void HandleWallContactChanged(bool isTouchingWall, string wallSide)

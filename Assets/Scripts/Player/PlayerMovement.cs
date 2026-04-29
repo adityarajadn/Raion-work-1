@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public event Action<bool> OnJump;
-    public event Action<bool> DashStateChanged;
-    public event Action<bool> OnMoving;
+    public static event Action<bool> OnJump;
+    public static event Action<bool> DashStateChanged;
+    public static event Action<bool> OnMoving;
     public static event Action<bool> PlayerFacingRight;
     public PlayerWallCheck playerWallCheck;
 
@@ -45,11 +45,11 @@ public class PlayerMovement : MonoBehaviour
     public float originalGravityScale;
 
     void OnEnable() {
-        playerWallCheck.OnWallContact += HandleWallContact;
+        PlayerWallCheck.OnWallContact += HandleWallContact;
     }
 
     void OnDisable() {
-        playerWallCheck.OnWallContact -= HandleWallContact;
+        PlayerWallCheck.OnWallContact -= HandleWallContact;
     }
     void Awake()
     {

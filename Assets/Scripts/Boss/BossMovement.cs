@@ -12,12 +12,8 @@ public class BossMovement : MonoBehaviour
 
     bool isHandlingAttack = false;
 
-    BossAnimationController bossAnimationController;
-
     void Awake()
     {
-        if (bossAnimationController == null)
-            bossAnimationController = GetComponent<BossAnimationController>();
         findTarget();
     }
 
@@ -30,12 +26,12 @@ public class BossMovement : MonoBehaviour
 
     void OnEnable()
     {
-        bossAnimationController.isHandlingAttack += setIsHandlingAttack;
+        BossAnimationController.isHandlingAttack += setIsHandlingAttack;
     }
 
     void OnDisable()
     {
-        bossAnimationController.isHandlingAttack -= setIsHandlingAttack;
+        BossAnimationController.isHandlingAttack -= setIsHandlingAttack;
     }
 
     void setIsHandlingAttack(bool value)
@@ -43,24 +39,10 @@ public class BossMovement : MonoBehaviour
         // hanya saat mulai attack (false -> true)
         if (value && !isHandlingAttack)
         {
-            FaceTargetOnce();
+            flip(isHandlingAttack);
         }
 
         isHandlingAttack = value;
-    }
-
-    void FaceTargetOnce()
-    {
-        if (target == null) return;
-
-        Vector3 scale = transform.localScale;
-
-        if (transform.position.x < target.position.x)
-            scale.x = -Mathf.Abs(scale.x);
-        else
-            scale.x = Mathf.Abs(scale.x);
-
-        transform.localScale = scale;
     }
 
     void move()

@@ -3,7 +3,7 @@ using System;
 
 public class PlayerWallCheck : MonoBehaviour
 {
-    public event Action<bool, string> OnWallContact;
+    public static event Action<bool, string> OnWallContact;
     bool isTouchingWall = false;
     public string wallSide;
     public PlayerMovement player;

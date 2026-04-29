@@ -2,24 +2,28 @@ using System;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : DamageableEntity
 {
-    public event Action<bool> OnDied;
+    public static event Action<bool> OnDied;
     public static event Action<float, float> OnDamaged;
 
     public CinemachineImpulseSource impulseSource;
-    public float currentHealth;
-    public float maxHealth = 60;
-    public float damageReceived;
+    public Collider2D playerHitBox;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         if (impulseSource == null)
         {
             impulseSource = GetComponent<CinemachineImpulseSource>();
         }
 
-        currentHealth = maxHealth;
+        if (playerHitBox == null)
+        {
+            playerHitBox = GetComponent<Collider2D>();
+            playerHitBox.enabled = true;
+        }
     }
 
     void OnEnable()
@@ -27,6 +31,7 @@ public class PlayerHealth : MonoBehaviour
         BossStateController.basicAttackDamage += setDamageReceived;
         BossStateController.pattern2Damage += setDamageReceived;
         BossStateController.pattern3Damage += setDamageReceived;
+        PlayerParry.OnParry += HandleParryEvent;
     }
 
     void OnDisable()
@@ -34,13 +39,23 @@ public class PlayerHealth : MonoBehaviour
         BossStateController.basicAttackDamage -= setDamageReceived;
         BossStateController.pattern2Damage -= setDamageReceived;
         BossStateController.pattern3Damage -= setDamageReceived;
+        PlayerParry.OnParry -= HandleParryEvent;
+    }
+
+    void HandleParryEvent(bool isParrying)
+    {
+        if (!isParrying) {
+            playerHitBox.enabled = true;
+        } else {
+            playerHitBox.enabled = false;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("EnemyAttackHitBox"))
+        if (other.CompareTag("EnemyAttackHitBox") || other.CompareTag("EnemyAttackEffect_Slash"))
         {
-            TakeDamage(damageReceived); // Example damage value
+            TakeDamage(damageReceived);
         }
     }
 
@@ -49,25 +64,14 @@ public class PlayerHealth : MonoBehaviour
         damageReceived = damage;
     }
 
-    void TakeDamage(float damage)
+    protected override void OnDamageTaken(float currentHealth, float maxHealth)
     {
-        currentHealth -= damage;
-        checkDeath();
         OnDamaged?.Invoke(currentHealth, maxHealth);
         Debug.Log("Current Health: " + currentHealth);
     }
 
-    void checkDeath()
+    protected override void Die()
     {
-        if (currentHealth <= 0f)
-        {
-            die();
-        }
-    }
-
-    void die()
-    {
-        currentHealth = 0f;
         OnDied?.Invoke(true);
     }
 }

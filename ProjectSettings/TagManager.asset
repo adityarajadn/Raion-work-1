@@ -47,6 +47,33 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background1
+    uniqueID: 2714891313
+    locked: 0
+  - name: Background2
+    uniqueID: 603508719
+    locked: 0
+  - name: Background3
+    uniqueID: 3856224671
+    locked: 0
+  - name: Background4
+    uniqueID: 4079901083
+    locked: 0
+  - name: Props
+    uniqueID: 1460849405
+    locked: 0
+  - name: Game
+    uniqueID: 667588105
+    locked: 0
+  - name: Map
+    uniqueID: 3086056999
+    locked: 0
+  - name: Background5
+    uniqueID: 2519735471
+    locked: 0
+  - name: UI
+    uniqueID: 3847160223
+    locked: 0
   m_RenderingLayers:
   - Default
   m_MigratedRenderPipelines: []
