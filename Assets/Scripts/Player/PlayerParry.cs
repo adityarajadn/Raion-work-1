@@ -11,9 +11,19 @@ public class PlayerParry : MonoBehaviour
     public CinemachineImpulseSource impulseSource;
     public static event Action<bool> OnParry;
 
-    void Update()
+    void OnEnable()
     {
-        if (Input.GetKeyDown(KeyCode.E) && !isParrying && canParry)
+        PlayerInputHandler.OnParryAction += HandleParryInput;
+    }
+
+    void OnDisable()
+    {
+        PlayerInputHandler.OnParryAction -= HandleParryInput;
+    }
+
+    void HandleParryInput()
+    {
+        if (!isParrying && canParry)
         {
             StartCoroutine(ParryRoutine());
         }

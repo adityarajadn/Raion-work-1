@@ -6,6 +6,7 @@ public class BossMovement : MonoBehaviour
     public Transform target;
 
     bool canMove = true;
+    bool canFlip = true;
     float distanceToTarget;
 
     public float stopDistance = 10f;
@@ -27,11 +28,19 @@ public class BossMovement : MonoBehaviour
     void OnEnable()
     {
         BossAnimationController.isHandlingAttack += setIsHandlingAttack;
+        BossHealth.OnDied += HandleDead;
     }
 
     void OnDisable()
     {
         BossAnimationController.isHandlingAttack -= setIsHandlingAttack;
+        BossHealth.OnDied -= HandleDead;
+    }
+
+    void HandleDead(bool isDead)
+    {
+        canMove = false;
+        canFlip = false;
     }
 
     void setIsHandlingAttack(bool value)
@@ -47,10 +56,8 @@ public class BossMovement : MonoBehaviour
 
     void move()
     {
-        checkToTarget();
-
         if (target == null || !canMove) return;
-
+        checkToTarget();
         transform.position = Vector2.MoveTowards(
             transform.position,
             target.position,
@@ -92,6 +99,7 @@ public class BossMovement : MonoBehaviour
 
     void flip(bool isHandlingAttack)
     {
+        if (!canFlip) return;
         if (target == null) return;
         if (isHandlingAttack) return;
 

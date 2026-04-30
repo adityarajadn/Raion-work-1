@@ -8,6 +8,7 @@ public class PlayerMovement : MonoBehaviour
     public static event Action<bool> OnMoving;
     public static event Action<bool> PlayerFacingRight;
     public PlayerWallCheck playerWallCheck;
+    public PlayerInputHandler playerInputHandler;
 
     public float speed = 10f;
     private Vector2 dir;
@@ -46,10 +47,16 @@ public class PlayerMovement : MonoBehaviour
 
     void OnEnable() {
         PlayerWallCheck.OnWallContact += HandleWallContact;
+        PlayerInputHandler.OnMoveAction += HandleMoveInput;
+        PlayerInputHandler.OnJumpAction += HandleJumpInput;
+        PlayerInputHandler.OnDashAction += HandleDashInput;
     }
 
     void OnDisable() {
         PlayerWallCheck.OnWallContact -= HandleWallContact;
+        PlayerInputHandler.OnMoveAction -= HandleMoveInput;
+        PlayerInputHandler.OnJumpAction -= HandleJumpInput;
+        PlayerInputHandler.OnDashAction -= HandleDashInput;
     }
     void Awake()
     {
@@ -64,8 +71,6 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         DashTick();
-        HandleInput();
-        HandleJumpInput();
         Flip();
     }
     
@@ -75,37 +80,27 @@ public class PlayerMovement : MonoBehaviour
         HandleMovement();
     }
 
-    void HandleInput()
+    void HandleMoveInput(Vector2 input)
     {
         if (!canInput)
         {
+            dir.x = 0f;
+            OnMoving?.Invoke(false);
             return;
         }
 
-        // Handle horizontal input
-        if (Input.GetKey(KeyCode.D))
+        dir.x = input.x;
+
+        if (dir.x > 0f)
         {
-            dir.x = 1f;
             facingRight = true;
         }
-        else if (Input.GetKey(KeyCode.A))
+        else if (dir.x < 0f)
         {
-            dir.x = -1f;
             facingRight = false;
         }
-        else
-        {
-            dir.x = 0f;
-        }
 
-        HandleJumpInput();
-
-        // Handle dash input
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && Time.time >= nextDashTime)
-        {
-            StartDash();
-            Debug.Log("Can Input: " + canInput);
-        }
+        OnMoving?.Invoke(dir.x != 0f);
     }
 
     void HandleMovement()
@@ -131,11 +126,6 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (!Input.GetKeyDown(KeyCode.Space))
-        {
-            return;
-        }
-
         if (canWallJump)
         {
             performJumpWall();
@@ -152,6 +142,17 @@ public class PlayerMovement : MonoBehaviour
             isGrounded = false;
             OnJump?.Invoke(true);
         }
+    }
+
+    void HandleDashInput()
+    {
+        if (!canInput || isDashing || Time.time < nextDashTime)
+        {
+            return;
+        }
+
+        StartDash();
+        Debug.Log("Can Input: " + canInput);
     }
 
     void HandleWallContact(bool isTouchingWall, string wallSide)

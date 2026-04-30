@@ -22,7 +22,7 @@ public abstract class DamageableEntity : MonoBehaviour
         OnDamageTaken(currentHealth, maxHealth);
     }
 
-    protected virtual void CheckDeath()
+    protected void CheckDeath()
     {
         if (currentHealth > 0f)
         {

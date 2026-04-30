@@ -12,6 +12,7 @@ public class BossAnimationController : MonoBehaviour
     public string isPattern2Parameter = "isPattern2";
     public string isPattern3Parameter = "isPattern3";
     public string isHurtParameter = "isHurt";
+    public string isDeadParameter = "isDead";
 
     public float hurtDuration = 0.15f;
     public Animator animator;
@@ -30,6 +31,7 @@ public class BossAnimationController : MonoBehaviour
         BossStateController.OnPattern2 += HandlePattern2;
         BossStateController.OnPattern3 += HandlePattern3;
         BossHealth.OnDamaged += HandleHurt;
+        BossHealth.OnDied += HandleDead;
     }
 
     void OnDisable()
@@ -38,6 +40,12 @@ public class BossAnimationController : MonoBehaviour
         BossStateController.OnPattern2 -= HandlePattern2;
         BossStateController.OnPattern3 -= HandlePattern3;
         BossHealth.OnDamaged -= HandleHurt;
+        BossHealth.OnDied -= HandleDead;
+    }
+
+    void HandleDead(bool isDead)
+    {
+        animator.SetBool(isDeadParameter, isDead);
     }
 
     void HandleBasicAttack(bool state)

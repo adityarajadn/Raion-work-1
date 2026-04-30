@@ -42,6 +42,7 @@ public class PlayerAttack : MonoBehaviour
         }
 
         PlayerMovement.OnMoving += checkMoving;
+        PlayerInputHandler.OnAttackAction += HandleAttackInput;
     }
 
     void OnDisable()
@@ -52,6 +53,7 @@ public class PlayerAttack : MonoBehaviour
         }
 
         PlayerMovement.OnMoving -= checkMoving;
+        PlayerInputHandler.OnAttackAction -= HandleAttackInput;
     }
 
     void HandleParry(bool isParrying)
@@ -59,19 +61,14 @@ public class PlayerAttack : MonoBehaviour
         SetAttackState(isParrying);
     }
 
-    void Update()
-    {
-        HandleInput();
-    }
-
     void checkMoving(bool isMoving)
     {
         this.isMoving = isMoving;
     }
 
-    void HandleInput()
+    void HandleAttackInput()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && !isAttacking && canAttack)
+        if (!isAttacking && canAttack)
         {
             StartCoroutine(AttackingRoutine());
         }
