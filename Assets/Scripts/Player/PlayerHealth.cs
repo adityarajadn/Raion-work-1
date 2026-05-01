@@ -7,8 +7,10 @@ public class PlayerHealth : DamageableEntity
     public static event Action<bool> OnDied;
     public static event Action<float, float> OnDamaged;
 
-    public CinemachineImpulseSource impulseSource;
-    public Collider2D playerHitBox;
+    [SerializeField] private CinemachineImpulseSource impulseSource;
+    [SerializeField] private Collider2D playerHitBox;
+
+    public CinemachineImpulseSource ImpulseSource => impulseSource;
 
     protected override void Awake()
     {

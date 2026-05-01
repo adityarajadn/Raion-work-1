@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class LevelUIController : MonoBehaviour
 {
-    public GameObject[] levelUI;
+    [SerializeField] private GameObject[] levelUI;
 
     void OnEnable()
     {

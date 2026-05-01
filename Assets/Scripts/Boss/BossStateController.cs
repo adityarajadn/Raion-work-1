@@ -5,14 +5,14 @@ using UnityEngine;
 public class BossStateController : MonoBehaviour
 {
     [Header("Attack Duration")]
-    public float basicAttackDuration = 2f;
-    public float pattern2Duration = 3f;
-    public float pattern3Duration = 4f;
+    [SerializeField] private float basicAttackDuration = 2f;
+    [SerializeField] private float pattern2Duration = 3f;
+    [SerializeField] private float pattern3Duration = 4f;
 
-    public bool isBossDead;
-    public float damageBasicAttack = 10;
-    public float damagePattern2 = 15;
-    public float damagePattern3 = 25;
+    bool isBossDead;
+    [SerializeField] private float damageBasicAttack = 10;
+    [SerializeField] private float damagePattern2 = 15;
+    [SerializeField] private float damagePattern3 = 25;
 
     public static event Action<bool> OnBasicAttack;
     public static event Action<float> basicAttackDamage;

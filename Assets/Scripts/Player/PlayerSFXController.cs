@@ -1,24 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerSFXController : MonoBehaviour
+public class PlayerSFXController : SFXControllerBase
 {
-    public AudioSource[] audioSources;
-
-    void OnEnable()
+    protected override void RegisterEvents()
     {
         PlayerAttack.OnAttackStarted += HandleBasicAttack;
         PlayerHealth.OnDied += HandleDead;
         PlayerHealth.OnDamaged += HandleDamaged;
     }
 
-    void OnDisable()
+    protected override void UnregisterEvents()
     {
-        PlayerInputHandler.OnAttackAction -= HandleBasicAttack;
+        PlayerAttack.OnAttackStarted -= HandleBasicAttack;
         PlayerHealth.OnDied -= HandleDead;
         PlayerHealth.OnDamaged -= HandleDamaged;
-
-        StopAllCoroutines();
     }
 
     void HandleBasicAttack()
@@ -38,14 +34,5 @@ public class PlayerSFXController : MonoBehaviour
         PlaySFX(2);
     }
 
-    void PlaySFX(int index)
-    {
-        if (audioSources == null || index < 0 || index >= audioSources.Length)
-        {
-            Debug.LogWarning("AudioSource array is not properly set up or index is out of range.");
-            return;
-        }
-
-        audioSources[index].Play();
-    }
+    // uses PlaySFX from SFXControllerBase
 }

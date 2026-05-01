@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class PlayerParry : MonoBehaviour
 {
-    public bool isParrying = false;
-    public bool canParry = false;
-    public float parryDuration = 0.3f;
-    public CinemachineImpulseSource impulseSource;
+    bool isParrying = false;
+    bool canParry = false;
+    [SerializeField] private float parryDuration = 0.3f;
+    [SerializeField] private CinemachineImpulseSource impulseSource;
     public static event Action<bool> OnParry;
 
     void OnEnable()

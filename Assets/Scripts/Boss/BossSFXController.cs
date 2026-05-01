@@ -1,11 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class BossSFXController : MonoBehaviour
+public class BossSFXController : SFXControllerBase
 {
-    public AudioSource[] audioSources;
-
-    void OnEnable()
+    protected override void RegisterEvents()
     {
         BossStateController.OnBasicAttack += HandleBasicAttack;
         BossHealth.OnDied += HandleDead;
@@ -13,14 +11,12 @@ public class BossSFXController : MonoBehaviour
         BossStateController.OnPattern2 += HandlePattern2;
     }
 
-    void OnDisable()
+    protected override void UnregisterEvents()
     {
         BossStateController.OnBasicAttack -= HandleBasicAttack;
         BossHealth.OnDied -= HandleDead;
         BossHealth.OnDamaged -= HandleDamaged;
         BossStateController.OnPattern2 -= HandlePattern2;
-
-        StopAllCoroutines();
     }
 
     void HandlePattern2(bool isPattern2)
@@ -47,14 +43,5 @@ public class BossSFXController : MonoBehaviour
         PlaySFX(2);
     }
 
-    void PlaySFX(int index)
-    {
-        if (audioSources == null || index < 0 || index >= audioSources.Length)
-        {
-            Debug.LogWarning("AudioSource array is not properly set up or index is out of range.");
-            return;
-        }
-
-        audioSources[index].Play();
-    }
+    // uses PlaySFX from SFXControllerBase
 }

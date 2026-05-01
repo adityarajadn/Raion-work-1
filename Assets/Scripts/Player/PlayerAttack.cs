@@ -9,17 +9,17 @@ public class PlayerAttack : MonoBehaviour
     public static event Action OnAttackEnded;
     public static event Action<bool> AttackStateChanged;
 
-    public float damageAmount = 25f;
-    public Collider2D hitBox;
+    [SerializeField] private float damageAmount = 25f;
+    [SerializeField] private Collider2D hitBox;
     private bool isAttacking = false;
-    public float attackCooldown = 0.5f;
-    public bool canAttack = true;
+    [SerializeField] private float attackCooldown = 0.5f;
+    private bool canAttack = true;
 
-    public float attackDuration = 0.2f;
-    public PlayerParry playerParry;
+    [SerializeField] private float attackDuration = 0.2f;
 
     private Coroutine cooldownRoutine;
-    public bool isMoving = false;
+
+    public float AttackCooldown => attackCooldown;
 
     void Awake()
     {
@@ -28,42 +28,23 @@ public class PlayerAttack : MonoBehaviour
             hitBox.enabled = false;
         }
 
-        if (playerParry == null)
-        {
-            playerParry = GetComponent<PlayerParry>();
-        }
     }
 
     void OnEnable()
     {
-        if (playerParry != null)
-        {
-            PlayerParry.OnParry += HandleParry;
-        }
-
-        PlayerMovement.OnMoving += checkMoving;
+        PlayerParry.OnParry += HandleParry;
         PlayerInputHandler.OnAttackAction += HandleAttackInput;
     }
 
     void OnDisable()
     {
-        if (playerParry != null)
-        {
-            PlayerParry.OnParry -= HandleParry;
-        }
-
-        PlayerMovement.OnMoving -= checkMoving;
+        PlayerParry.OnParry -= HandleParry;
         PlayerInputHandler.OnAttackAction -= HandleAttackInput;
     }
 
     void HandleParry(bool isParrying)
     {
         SetAttackState(isParrying);
-    }
-
-    void checkMoving(bool isMoving)
-    {
-        this.isMoving = isMoving;
     }
 
     void HandleAttackInput()

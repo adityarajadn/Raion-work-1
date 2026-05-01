@@ -2,26 +2,18 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class BossAnimationController : MonoBehaviour
+public class BossAnimationController : AnimatorControllerBase
 {
     [Header("Animator Parameter")]
-    public string isAttackingParameter = "isAttacking";
-    public string isPattern2Parameter = "isPattern2";
-    public string isPattern3Parameter = "isPattern3";
-    public string isDeadParameter = "isDead";
+    [SerializeField] private string isAttackingParameter = "isAttacking";
+    [SerializeField] private string isPattern2Parameter = "isPattern2";
+    [SerializeField] private string isPattern3Parameter = "isPattern3";
+    // isDeadParameter and deadDuration are provided by base class
 
-    public float hurtDuration = 0.15f;
-    public float deadDuration = 5f;
-    public Animator animator;
+    [SerializeField] private float hurtDuration = 0.15f;
     public static event Action<bool> isHandlingAttack;
     public static event Action<bool> finishDeadAnimation;
 
-
-    void Awake()
-    {
-        if (animator == null)
-            animator = GetComponent<Animator>();
-    }
 
     void OnEnable()
     {
@@ -37,57 +29,35 @@ public class BossAnimationController : MonoBehaviour
         BossStateController.OnPattern2 -= HandlePattern2;
         BossStateController.OnPattern3 -= HandlePattern3;
         BossHealth.OnDied -= HandleDead;
-
-        StopAllCoroutines();
+        // StopAllCoroutines is handled by base OnDisable
     }
 
     void HandleDead(bool isDead)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isDeadParameter, isDead);
+        SafeSetBool(isDeadParameter, isDead);
         StartCoroutine(DeadRoutine(isDead));
     }
 
-    IEnumerator DeadRoutine(bool isDead)
+    protected override void OnDeadFinished(bool isDead)
     {
-        yield return new WaitForSeconds(deadDuration); // Durasi animasi mati, sesuaikan dengan animasi yang digunakan
         finishDeadAnimation?.Invoke(isDead);
     }
 
     void HandleBasicAttack(bool state)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isAttackingParameter, state);
+        SafeSetBool(isAttackingParameter, state);
         isHandlingAttack?.Invoke(state);
     }
 
     void HandlePattern2(bool state)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isPattern2Parameter, state);
+        SafeSetBool(isPattern2Parameter, state);
         isHandlingAttack?.Invoke(state);
     }
 
     void HandlePattern3(bool state)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isPattern3Parameter, state);
+        SafeSetBool(isPattern3Parameter, state);
         isHandlingAttack?.Invoke(state);
     }
 }

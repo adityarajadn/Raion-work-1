@@ -2,8 +2,10 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static int currentScene;
-    public static GameManager Instance;
+    static int currentScene;
+    public static int CurrentScene => currentScene;
+    public static GameManager Instance { get; private set; }
+    [SerializeField] private AudioSource audioSource;
 
     void Awake()
     {
@@ -20,10 +22,22 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         checkScene();
+        disableMusic();
     }
 
     void checkScene()
     {
         currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+    }
+    
+    void disableMusic() {
+        if (currentScene == 1) { // bossbattlescene
+            audioSource.Stop();
+        } else
+        {
+            if (!audioSource.isPlaying) {
+                audioSource.Play();
+            }
+        }
     }
 }

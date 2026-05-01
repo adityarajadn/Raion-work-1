@@ -5,8 +5,8 @@ public class PlayerWallCheck : MonoBehaviour
 {
     public static event Action<bool, string> OnWallContact;
     bool isTouchingWall = false;
-    public string wallSide;
-    public PlayerMovement player;
+    string wallSide;
+    bool facingRight = true;
     
 
     void OnEnable()
@@ -19,36 +19,19 @@ public class PlayerWallCheck : MonoBehaviour
         PlayerMovement.PlayerFacingRight -= UpdateFacingDirection;
     }
     
-    void Awake()
-    {
-        if (player == null)
-        {
-            GameObject playerObject = GameObject.FindWithTag("Player");
-            if (playerObject != null)
-            {
-                player = playerObject.GetComponent<PlayerMovement>();
-            }
-        }
-    }
-
     void UpdateFacingDirection(bool facingRight)
     {
+        this.facingRight = facingRight;
         findWallSide();
     }
 
     void findWallSide()
     {
-        if (player == null)
-        {
-            wallSide = "None";
-            return;
-        }
-
-        if (player.facingRight && isTouchingWall)
+        if (facingRight && isTouchingWall)
         {
             wallSide = "Right";
         }
-        else if (!player.facingRight && isTouchingWall)
+        else if (!facingRight && isTouchingWall)
         {
             wallSide = "Left";
         }

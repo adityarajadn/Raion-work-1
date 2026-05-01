@@ -6,15 +6,20 @@ using UnityEngine.UI;
 
 public class CooldownUI : MonoBehaviour
 {
-    public TextMeshProUGUI cooldownText;
-    public Image ui;
-    public PlayerAttack playerAttack;
-    public PlayerMovement playerMovement;
+    [SerializeField] private TextMeshProUGUI cooldownText;
+    [SerializeField] private Image ui;
+    [SerializeField] private PlayerAttack playerAttack;
+    [SerializeField] private PlayerDashController playerDashController;
     private Coroutine cooldownRoutine;
-    public string condition;
+    [SerializeField] private string condition;
 
     void Awake()
     {
+        if (playerDashController == null)
+        {
+            playerDashController = FindAnyObjectByType<PlayerDashController>();
+        }
+
         if (cooldownText != null)
         {
             cooldownText.text = "";
@@ -35,7 +40,7 @@ public class CooldownUI : MonoBehaviour
 
         if (condition == "Dash")
         {
-            PlayerMovement.DashStateChanged += UpdateCooldownUIDash;
+            PlayerDashController.DashStateChanged += UpdateCooldownUIDash;
         }
     }
 
@@ -43,7 +48,7 @@ public class CooldownUI : MonoBehaviour
     {
         PlayerAttack.OnAttack -= UpdateCooldownUIAttack;
         PlayerParry.OnParry -= UpdateCooldownUIParry;
-        PlayerMovement.DashStateChanged -= UpdateCooldownUIDash;
+        PlayerDashController.DashStateChanged -= UpdateCooldownUIDash;
 
         if (cooldownRoutine != null)
         {
@@ -58,7 +63,7 @@ public class CooldownUI : MonoBehaviour
     {
         PlayerAttack.OnAttack -= UpdateCooldownUIAttack;
         PlayerParry.OnParry -= UpdateCooldownUIParry;
-        PlayerMovement.DashStateChanged -= UpdateCooldownUIDash;
+        PlayerDashController.DashStateChanged -= UpdateCooldownUIDash;
 
         if (cooldownRoutine != null)
         {
@@ -81,7 +86,7 @@ public class CooldownUI : MonoBehaviour
             StopCoroutine(cooldownRoutine);
         }
 
-        cooldownRoutine = StartCoroutine(CooldownRoutine(playerAttack.attackCooldown));
+        cooldownRoutine = StartCoroutine(CooldownRoutine(playerAttack.AttackCooldown));
     }
 
     void UpdateCooldownUIParry(bool isParrying)
@@ -96,12 +101,12 @@ public class CooldownUI : MonoBehaviour
             StopCoroutine(cooldownRoutine);
         }
 
-        cooldownRoutine = StartCoroutine(CooldownRoutine(playerAttack.attackCooldown));
+        cooldownRoutine = StartCoroutine(CooldownRoutine(playerAttack.AttackCooldown));
     }
 
     void UpdateCooldownUIDash(bool isDashing)
     {
-        if (playerMovement == null || cooldownText == null)
+        if (playerDashController == null || cooldownText == null)
         {
             return;
         }
@@ -111,7 +116,7 @@ public class CooldownUI : MonoBehaviour
             StopCoroutine(cooldownRoutine);
         }
 
-        cooldownRoutine = StartCoroutine(CooldownRoutine(playerMovement.dashCooldown));
+        cooldownRoutine = StartCoroutine(CooldownRoutine(playerDashController.DashCooldown));
     }
 
     IEnumerator CooldownRoutine(float duration)

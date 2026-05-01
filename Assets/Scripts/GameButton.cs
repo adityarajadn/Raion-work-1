@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class GameButton : MonoBehaviour
 {
-    public string scene;
+    [SerializeField] private string scene;
 
     public void LoadScene()
     {
@@ -15,9 +15,9 @@ public class GameButton : MonoBehaviour
 
     public void RestartLevel()
     {
-        if (GameManager.currentScene == 0) return;
+        if (GameManager.CurrentScene == 0) return;
         Time.timeScale = 1f;
-        SceneManager.LoadScene(GameManager.currentScene);
+        SceneManager.LoadScene(GameManager.CurrentScene);
     }
 
     public void QuitGame()

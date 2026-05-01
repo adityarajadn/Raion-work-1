@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class GameUIAnimationController : MonoBehaviour
 {
-    public Animator animator;
-    public string showPauseMenuParameter = "isPause";
+    [SerializeField] private Animator animator;
+    [SerializeField] private string showPauseMenuParameter = "isPause";
     void Start()
     {
         if (animator == null) {

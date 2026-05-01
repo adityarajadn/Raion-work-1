@@ -757,6 +757,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 747a9eaef8df7ce4193129734c52718f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  audioSource: {fileID: 1054939139}
 --- !u!4 &1140993663
 Transform:
   m_ObjectHideFlags: 0
@@ -862,7 +863,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8c30cf800b6abb44b141975f007236d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameButton
-  scene: BossBattleScene
+  scene: Cutscene(1)
 --- !u!114 &1242767791
 MonoBehaviour:
   m_ObjectHideFlags: 0

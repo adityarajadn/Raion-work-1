@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerHealthBarController : MonoBehaviour
 {
-    public GameObject[] healthBarStates;
+    [SerializeField] private GameObject[] healthBarStates;
 
     void Awake()
     {

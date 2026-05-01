@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class PlayerDamageFeedback : MonoBehaviour
 {
-    public SpriteRenderer targetRenderer;
-    public Color normalColor = Color.white;
-    public Color damageColor = Color.red;
-    public float flashDuration = 0.12f;
+    [SerializeField] private SpriteRenderer targetRenderer;
+    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color damageColor = Color.red;
+    [SerializeField] private float flashDuration = 0.12f;
     
 
     private Coroutine flashRoutine;

@@ -2,10 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 
-public class PlayerAnimationHandler : MonoBehaviour
+public class PlayerAnimationHandler : AnimatorControllerBase
 {
-    public Animator animator;
-
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
     [SerializeField] private string isHurtParameter = "isHurt";
@@ -14,29 +12,24 @@ public class PlayerAnimationHandler : MonoBehaviour
     [SerializeField] private string isOnWallParameter = "isOnWall";
     [SerializeField] private float hurtDuration = 0.15f;
     [SerializeField] private float jumpDuration = 0.1f;
-    [SerializeField] private string isDeadParameter = "isDead";
+    [SerializeField] private float attackDuration = 0.3f;
+    // isDeadParameter and deadDuration are provided by base class
 
     public static event Action<bool> movingHandler;
     public static event Action<bool> attackHandler;
     public static event Action<float, float> damagedHandler;
-    public float deadDuration = 5f;
 
     public static event Action<bool> finishDeadAnimation;
     
     void Awake()
     {
-        if (animator == null)
-        {
-            animator = GetComponent<Animator>();
-        }
+        base.Awake();
 
         movingHandler = HandleMovingChanged;
         attackHandler = HandleAttackChanged;
         damagedHandler = HandleDamaged;
 
-
         this.enabled = true;
-
     }
 
     void OnEnable()
@@ -59,132 +52,70 @@ public class PlayerAnimationHandler : MonoBehaviour
         PlayerWallCheck.OnWallContact -= HandleWallContactChanged;
         PlayerParry.OnParry -= HandleParryingChanged;
         PlayerHealth.OnDied -= HandlePlayerDeath;
-
-        StopAllCoroutines();
     }
 
     void HandlePlayerDeath(bool isDead)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isDeadParameter, isDead);
-        StartCoroutine(PlayDeathState());
+        SafeSetBool(isDeadParameter, isDead);
+        StartCoroutine(DeadRoutine(isDead));
     }
 
-    IEnumerator PlayDeathState()
+    protected override void OnDeadFinished(bool isDead)
     {
-        if (animator == null)
-        {
-            yield break;
-        }
-
-        yield return new WaitForSeconds(deadDuration); // Durasi animasi mati, sesuaikan dengan animasi yang digunakan
-        if (animator == null)
-        {
-            yield break;
-        }
         finishDeadAnimation?.Invoke(true);
     }
 
     void HandleWallContactChanged(bool isTouchingWall, string wallSide)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isOnWallParameter, isTouchingWall);
+        SafeSetBool(isOnWallParameter, isTouchingWall);
     }
 
     void HandleMovingChanged(bool isMoving)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isRunningParameter, isMoving);
+        SafeSetBool(isRunningParameter, isMoving);
     }
 
     void HandleParryingChanged(bool isParrying)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isParryingParameter, isParrying);
+        SafeSetBool(isParryingParameter, isParrying);
         // Debug.Log("Success Parry | " + isParrying);
     }
 
     void HandleAttackChanged(bool isAttacking)
     {
-        if (animator == null)
-        {
-            return;
-        }
-        animator.SetBool(isAttackingParameter, isAttacking);    
-        
+        SafeSetBool(isAttackingParameter, isAttacking);
     }
 
     void HandleDamaged(float currentHealth, float maxHealth)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        if (currentHealth <= 0f)
-        {
-            return;
-        }
-
+        if (currentHealth <= 0f) return;
         StartCoroutine(PlayHurtState());
     }
 
     public void handlePlayerJumping(bool isJumping)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
         StartCoroutine(PlayJumpState());
+    }
+
+    IEnumerator PlayAttackState()
+    {
+        SafeSetBool(isAttackingParameter, true);
+        yield return new WaitForSeconds(attackDuration);
+        SafeSetBool(isAttackingParameter, false);
     }
 
     IEnumerator PlayHurtState()
     {
-        if (animator == null)
-        {
-            yield break;
-        }
-
-        animator.SetBool(isHurtParameter, true);
+        SafeSetBool(isHurtParameter, true);
         yield return new WaitForSeconds(hurtDuration);
-        if (animator == null)
-        {
-            yield break;
-        }
-        animator.SetBool(isHurtParameter, false);
+        SafeSetBool(isHurtParameter, false);
     }
 
     IEnumerator PlayJumpState()
     {
-        if (animator == null)
-        {
-            yield break;
-        }
-
-        animator.SetBool("isJumping", true);
+        SafeSetBool("isJumping", true);
         yield return new WaitForSeconds(jumpDuration);
-        if (animator == null)
-        {
-            yield break;
-        }
-        animator.SetBool("isJumping", false);
+        SafeSetBool("isJumping", false);
     }
 
 }

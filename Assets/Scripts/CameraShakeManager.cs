@@ -4,23 +4,23 @@ using System.Collections;
 
 public class CameraShakeManager : MonoBehaviour
 {
-    public static CameraShakeManager instance;
-    public CinemachineCamera cam;
+    public static CameraShakeManager Instance { get; private set; }
+    [SerializeField] private CinemachineCamera cam;
 
-    public PlayerHealth playerHealth;
-    public float globalShakeForce = 1f;
-    public float parryZoomFov = 30f;
-    public float parryZoomDuration = 0.1f;
-    public float parryFreezeDuration = 1f;
+    [SerializeField] private PlayerHealth playerHealth;
+    [SerializeField] private float globalShakeForce = 1f;
+    [SerializeField] private float parryZoomFov = 30f;
+    [SerializeField] private float parryZoomDuration = 0.1f;
+    [SerializeField] private float parryFreezeDuration = 1f;
 
     float defaultFov;
     Coroutine parryEffectRoutine;
 
     void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
         }
 
         if (playerHealth == null)
@@ -38,12 +38,16 @@ public class CameraShakeManager : MonoBehaviour
     {
         PlayerHealth.OnDamaged += HandlePlayerDamaged;
         PlayerParry.OnParry += HandlePlayerParry;
+
+        BossHealth.OnDamaged += HandleBossDamaged; // Shake camera when boss takes damage as well
     }
 
     void OnDisable()
     {
         PlayerHealth.OnDamaged -= HandlePlayerDamaged;
         PlayerParry.OnParry -= HandlePlayerParry;
+
+        BossHealth.OnDamaged -= HandleBossDamaged;
 
         if (parryEffectRoutine != null)
         {
@@ -54,20 +58,31 @@ public class CameraShakeManager : MonoBehaviour
 
     void OnDestroy()
     {
-        if (instance == this)
+        if (Instance == this)
         {
-            instance = null;
+            Instance = null;
         }
     }
 
     void HandlePlayerDamaged(float current, float max)
     {
-        if (playerHealth == null || playerHealth.impulseSource == null)
+        if (playerHealth == null || playerHealth.ImpulseSource == null)
         {
             return;
         }
+        
+        CameraShake(playerHealth.ImpulseSource);
+    }
 
-        CameraShake(playerHealth.impulseSource);
+    void HandleBossDamaged(float current, float max)
+    {
+        StartCoroutine(freezeForSeconds(0.1f));
+    }
+    IEnumerator freezeForSeconds(float duration)
+    {
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(duration);
+        Time.timeScale = 1f;
     }
 
     void HandlePlayerParry(bool isParrying)

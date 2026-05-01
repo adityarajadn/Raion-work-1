@@ -2,15 +2,12 @@ using UnityEngine;
 
 public class BossMovement : MonoBehaviour
 {
-    public float moveSpeed = 10f;
-    public Transform target;
+    [SerializeField] private float moveSpeed = 10f;
+    [SerializeField] private float stopDistance = 10f;
+    [SerializeField] private Transform target;
 
     bool canMove = true;
     bool canFlip = true;
-    float distanceToTarget;
-
-    public float stopDistance = 10f;
-
     bool isHandlingAttack = false;
 
     void Awake()
@@ -20,9 +17,10 @@ public class BossMovement : MonoBehaviour
 
     void Update()
     {
-        countDistance();   // update jarak terus
+        if (target == null) return;
+        updateMovementState();
         move();
-        flip(isHandlingAttack);
+        flip();
     }
 
     void OnEnable()
@@ -45,19 +43,16 @@ public class BossMovement : MonoBehaviour
 
     void setIsHandlingAttack(bool value)
     {
-        // hanya saat mulai attack (false -> true)
         if (value && !isHandlingAttack)
-        {
-            flip(isHandlingAttack);
-        }
+            flip();
 
         isHandlingAttack = value;
     }
 
     void move()
     {
-        if (target == null || !canMove) return;
-        checkToTarget();
+        if (!canMove) return;
+
         transform.position = Vector2.MoveTowards(
             transform.position,
             target.position,
@@ -73,43 +68,21 @@ public class BossMovement : MonoBehaviour
             target = player.transform;
     }
 
-    void countDistance()
+    void updateMovementState()
     {
-        if (target == null) return;
+        float distanceToTarget = Vector2.Distance(transform.position, target.position);
+        canMove = distanceToTarget > stopDistance;
+    }
 
-        distanceToTarget = Vector2.Distance(
-            transform.position,
-            target.position
+    void flip()
+    {
+        if (!canFlip || isHandlingAttack) return;
+
+        float directionX = target.position.x > transform.position.x ? -1 : 1;
+        transform.localScale = new Vector3(
+            Mathf.Abs(transform.localScale.x) * directionX,
+            transform.localScale.y,
+            transform.localScale.z
         );
-    }
-
-    void checkToTarget()
-    {
-        if (target == null) return;
-
-        if (distanceToTarget <= stopDistance)
-        {
-            canMove = false;
-        }
-        else
-        {
-            canMove = true;
-        }
-    }
-
-    void flip(bool isHandlingAttack)
-    {
-        if (!canFlip) return;
-        if (target == null) return;
-        if (isHandlingAttack) return;
-
-        Vector3 scale = transform.localScale; // ambil scale sekarang
-
-        if (transform.position.x < target.position.x)
-            scale.x = -Mathf.Abs(scale.x);
-        else
-            scale.x = Mathf.Abs(scale.x);
-
-        transform.localScale = scale;
     }
 }
