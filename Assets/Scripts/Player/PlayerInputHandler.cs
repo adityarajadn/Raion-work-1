@@ -8,11 +8,14 @@ public class PlayerInputHandler : MonoBehaviour
     public static event Action OnAttackAction;
     public static event Action OnDashAction;
     public static event Action OnParryAction;
+    public static event Action OnPauseAction;
 
     private bool canInput = true;
 
     void Update()
     {
+        HandlePauseInput();
+
         if (!canInput) return;
         HandleMoveInput();
         HandleJumpInput();
@@ -24,13 +27,35 @@ public class PlayerInputHandler : MonoBehaviour
     void OnEnable()
     {
         GameUIController.GamePaused += HandleGamePaused;
+        PlayerHealth.OnDied += HandlePlyaerDead; // Disable input saat player mati
     }
 
     void OnDisable()
     {
         GameUIController.GamePaused -= HandleGamePaused;
+        PlayerHealth.OnDied -= HandlePlyaerDead;
     }
 
+    void OnDestroy()
+    {
+        GameUIController.GamePaused -= HandleGamePaused;
+        PlayerHealth.OnDied -= HandlePlyaerDead;
+    }
+
+    void HandlePauseInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            OnPauseAction?.Invoke();
+        }
+    }
+
+    void HandlePlyaerDead(bool isDead) {
+        if (isDead) {
+            canInput = false;
+        }
+    }
+    
     void HandleGamePaused(bool isPaused) {
         canInput = !isPaused;
     }

@@ -23,7 +23,11 @@ public class PlayerWallCheck : MonoBehaviour
     {
         if (player == null)
         {
-            player = GameObject.FindWithTag("Player").GetComponent<PlayerMovement>();
+            GameObject playerObject = GameObject.FindWithTag("Player");
+            if (playerObject != null)
+            {
+                player = playerObject.GetComponent<PlayerMovement>();
+            }
         }
     }
 
@@ -34,6 +38,12 @@ public class PlayerWallCheck : MonoBehaviour
 
     void findWallSide()
     {
+        if (player == null)
+        {
+            wallSide = "None";
+            return;
+        }
+
         if (player.facingRight && isTouchingWall)
         {
             wallSide = "Right";

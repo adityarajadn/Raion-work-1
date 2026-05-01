@@ -2,18 +2,19 @@ using UnityEngine;
 
 public class PlayerHealthBarController : MonoBehaviour
 {
-    
-    public GameObject healthBar3of3;
-    public GameObject healthBar2of3;
-    public GameObject healthBar1of3;
-    public GameObject healthBar0of3;
+    public GameObject[] healthBarStates;
 
     void Awake()
     {
-        healthBar0of3.SetActive(false);
-        healthBar1of3.SetActive(false);
-        healthBar2of3.SetActive(false);
-        healthBar3of3.SetActive(true);
+        if (healthBarStates == null || healthBarStates.Length < 4)
+        {
+            return;
+        }
+
+        healthBarStates[0].SetActive(false); // hp empty
+        healthBarStates[1].SetActive(false);
+        healthBarStates[2].SetActive(false);
+        healthBarStates[3].SetActive(true); // hp full
     }
 
     void OnEnable()
@@ -28,6 +29,11 @@ public class PlayerHealthBarController : MonoBehaviour
 
     void UpdateHealthBar(float currentHealth, float maxHealth)
     {
+        if (healthBarStates == null || healthBarStates.Length < 4 || maxHealth <= 0f)
+        {
+            return;
+        }
+
         float healthPercentage = currentHealth / maxHealth;
 
         if (healthPercentage > 0.66f)
@@ -42,33 +48,46 @@ public class PlayerHealthBarController : MonoBehaviour
 
     void SetHealthBarState(int state)
     {
+        if (healthBarStates == null || healthBarStates.Length < 4)
+        {
+            return;
+        }
+
         if (state == 3)
         {
-            healthBar3of3.SetActive(true);
-            healthBar2of3.SetActive(false);
-            healthBar1of3.SetActive(false);
-            healthBar0of3.SetActive(false);
+            healthBarStates[3].SetActive(true);
+            for (int i = 0; i < healthBarStates.Length; i++)
+            {
+                if (i == 3) continue;
+                healthBarStates[i].SetActive(false);
+            }
         }
         else if (state == 2)
         {
-            healthBar3of3.SetActive(false);
-            healthBar2of3.SetActive(true);
-            healthBar1of3.SetActive(false);
-            healthBar0of3.SetActive(false);
+            healthBarStates[2].SetActive(true);
+            for (int i = 0; i < healthBarStates.Length; i++)
+            {
+                if (i == 2) continue;
+                healthBarStates[i].SetActive(false);
+            }
         }
         else if (state == 1)
         {
-            healthBar3of3.SetActive(false);
-            healthBar2of3.SetActive(false);
-            healthBar1of3.SetActive(true);
-            healthBar0of3.SetActive(false);
+            healthBarStates[1].SetActive(true);
+            for (int i = 0; i < healthBarStates.Length; i++)
+            {
+                if (i == 1) continue;
+                healthBarStates[i].SetActive(false);
+            }
         }
         else // state == 0
         {
-            healthBar3of3.SetActive(false);
-            healthBar2of3.SetActive(false);
-            healthBar1of3.SetActive(false);
-            healthBar0of3.SetActive(true);
+            healthBarStates[0].SetActive(true);
+            for (int i = 0; i < healthBarStates.Length; i++)
+            {
+                if (i == 0) continue;
+                healthBarStates[i].SetActive(false);
+            }
         }
     }
 }

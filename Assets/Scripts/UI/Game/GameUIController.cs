@@ -1,23 +1,67 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class GameUIController : MonoBehaviour
 {
     public static event Action<bool> GamePaused;
-    bool isPaused = false;
+    public static event Action<bool> showingGameUI;
+    public static bool isPaused = false;
+    bool canPause = true;
+    public GameObject winScreen;
+    public GameObject loseScreen;
 
-    void Update()
+    void OnEnable()
     {
-        HandlePauseInput();
+        PlayerInputHandler.OnPauseAction += HandlePauseInput;
+        BossAnimationController.finishDeadAnimation += HandleWinCondition;
+        PlayerAnimationHandler.finishDeadAnimation += HandleLoseCondition;
     }
 
+    void OnDisable()
+    {
+        PlayerInputHandler.OnPauseAction -= HandlePauseInput;
+        BossAnimationController.finishDeadAnimation -= HandleWinCondition;
+        PlayerAnimationHandler.finishDeadAnimation -= HandleLoseCondition;
+    }
+    
     void HandlePauseInput() {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            TogglePause();
-        }
+        if (!canPause) return;
+
+        TogglePause();
     }
 
-    void TogglePause()
+    void HandleWinCondition(bool isWin)
+    {
+        if (!isWin) return;
+        canPause = false;
+        Time.timeScale = 0f;
+        showWinScreen();
+    }
+
+    void HandleLoseCondition(bool isLose)
+    {
+        if (!isLose) return;
+        canPause = false;
+        Time.timeScale = 0f;
+        showLoseScreen();
+    }
+
+    void showWinScreen() {
+        if (winScreen == null || loseScreen == null) return;
+        winScreen.SetActive(true);
+        loseScreen.SetActive(false);
+        showingGameUI?.Invoke(true);
+    }
+
+    void showLoseScreen() {
+        if (winScreen == null || loseScreen == null) return;
+        loseScreen.SetActive(true);
+        winScreen.SetActive(false);
+        showingGameUI?.Invoke(true);
+    }
+
+    public static void TogglePause()
     {
         isPaused = !isPaused;
 
@@ -25,7 +69,14 @@ public class GameUIController : MonoBehaviour
         showPauseMenu(isPaused);
     }
 
-    void showPauseMenu(bool show) {
-        GamePaused?.Invoke(show);
+    static void showPauseMenu(bool isPaused) {
+        GamePaused?.Invoke(isPaused);
+        showingGameUI?.Invoke(isPaused);
+
+        // Clear any selected UI object when resuming so keyboard (Space/Enter)
+        // doesn't accidentally activate a button left selected by the pause menu.
+        if (!isPaused && EventSystem.current != null) {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
 }

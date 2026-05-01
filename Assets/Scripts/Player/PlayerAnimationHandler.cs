@@ -14,10 +14,14 @@ public class PlayerAnimationHandler : MonoBehaviour
     [SerializeField] private string isOnWallParameter = "isOnWall";
     [SerializeField] private float hurtDuration = 0.15f;
     [SerializeField] private float jumpDuration = 0.1f;
+    [SerializeField] private string isDeadParameter = "isDead";
 
-    private Action<bool> movingHandler;
-    private Action<bool> attackHandler;
-    private Action<float, float> damagedHandler;
+    public static event Action<bool> movingHandler;
+    public static event Action<bool> attackHandler;
+    public static event Action<float, float> damagedHandler;
+    public float deadDuration = 5f;
+
+    public static event Action<bool> finishDeadAnimation;
     
     void Awake()
     {
@@ -43,6 +47,7 @@ public class PlayerAnimationHandler : MonoBehaviour
         PlayerHealth.OnDamaged += damagedHandler;
         PlayerWallCheck.OnWallContact += HandleWallContactChanged;
         PlayerParry.OnParry += HandleParryingChanged;
+        PlayerHealth.OnDied += HandlePlayerDeath;
     }
 
     void OnDisable()
@@ -53,6 +58,35 @@ public class PlayerAnimationHandler : MonoBehaviour
         PlayerHealth.OnDamaged -= damagedHandler;
         PlayerWallCheck.OnWallContact -= HandleWallContactChanged;
         PlayerParry.OnParry -= HandleParryingChanged;
+        PlayerHealth.OnDied -= HandlePlayerDeath;
+
+        StopAllCoroutines();
+    }
+
+    void HandlePlayerDeath(bool isDead)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        animator.SetBool(isDeadParameter, isDead);
+        StartCoroutine(PlayDeathState());
+    }
+
+    IEnumerator PlayDeathState()
+    {
+        if (animator == null)
+        {
+            yield break;
+        }
+
+        yield return new WaitForSeconds(deadDuration); // Durasi animasi mati, sesuaikan dengan animasi yang digunakan
+        if (animator == null)
+        {
+            yield break;
+        }
+        finishDeadAnimation?.Invoke(true);
     }
 
     void HandleWallContactChanged(bool isTouchingWall, string wallSide)
@@ -123,15 +157,33 @@ public class PlayerAnimationHandler : MonoBehaviour
 
     IEnumerator PlayHurtState()
     {
+        if (animator == null)
+        {
+            yield break;
+        }
+
         animator.SetBool(isHurtParameter, true);
         yield return new WaitForSeconds(hurtDuration);
+        if (animator == null)
+        {
+            yield break;
+        }
         animator.SetBool(isHurtParameter, false);
     }
 
     IEnumerator PlayJumpState()
     {
+        if (animator == null)
+        {
+            yield break;
+        }
+
         animator.SetBool("isJumping", true);
         yield return new WaitForSeconds(jumpDuration);
+        if (animator == null)
+        {
+            yield break;
+        }
         animator.SetBool("isJumping", false);
     }
 

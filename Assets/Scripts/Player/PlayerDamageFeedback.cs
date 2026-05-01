@@ -27,6 +27,25 @@ public class PlayerDamageFeedback : MonoBehaviour
     void OnDisable()
     {
         PlayerHealth.OnDamaged -= HandleDamageEvent;
+
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
+        }
+
+        StopAllCoroutines();
+    }
+
+    void OnDestroy()
+    {
+        PlayerHealth.OnDamaged -= HandleDamageEvent;
+
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
+        }
     }
 
     void HandleDamageEvent(float currentHealth, float maxHealth)
@@ -36,7 +55,7 @@ public class PlayerDamageFeedback : MonoBehaviour
 
     public void PlayDamageFeedback(float currentHealth, float maxHealth)
     {
-        if (targetRenderer == null)
+        if (targetRenderer == null || !isActiveAndEnabled)
         {
             return;
         }
@@ -51,8 +70,21 @@ public class PlayerDamageFeedback : MonoBehaviour
 
     IEnumerator FlashDamage()
     {
+        if (targetRenderer == null)
+        {
+            flashRoutine = null;
+            yield break;
+        }
+
         targetRenderer.color = damageColor;
         yield return new WaitForSeconds(flashDuration);
+
+        if (targetRenderer == null)
+        {
+            flashRoutine = null;
+            yield break;
+        }
+
         targetRenderer.color = normalColor;
         flashRoutine = null;
     }

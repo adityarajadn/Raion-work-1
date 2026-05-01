@@ -10,6 +10,11 @@ public class GameUIAnimationController : MonoBehaviour
             animator = GetComponent<Animator>();
         }
 
+        if (animator == null)
+        {
+            return;
+        }
+
         animator.updateMode = AnimatorUpdateMode.UnscaledTime;
     }
 
@@ -22,6 +27,11 @@ public class GameUIAnimationController : MonoBehaviour
     }
 
     void HandleGamePaused(bool isPaused) {
+        if (animator == null)
+        {
+            return;
+        }
+
         animator.SetBool(showPauseMenuParameter, isPaused);
     }
 }

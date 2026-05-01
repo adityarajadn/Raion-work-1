@@ -50,6 +50,23 @@ public class CooldownUI : MonoBehaviour
             StopCoroutine(cooldownRoutine);
             cooldownRoutine = null;
         }
+
+        StopAllCoroutines();
+    }
+
+    void OnDestroy()
+    {
+        PlayerAttack.OnAttack -= UpdateCooldownUIAttack;
+        PlayerParry.OnParry -= UpdateCooldownUIParry;
+        PlayerMovement.DashStateChanged -= UpdateCooldownUIDash;
+
+        if (cooldownRoutine != null)
+        {
+            StopCoroutine(cooldownRoutine);
+            cooldownRoutine = null;
+        }
+
+        StopAllCoroutines();
     }
 
     void UpdateCooldownUIAttack(float damage)
@@ -99,6 +116,12 @@ public class CooldownUI : MonoBehaviour
 
     IEnumerator CooldownRoutine(float duration)
     {
+        if (ui == null || cooldownText == null)
+        {
+            cooldownRoutine = null;
+            yield break;
+        }
+
         float remaining = duration;
         ui.color = Color.gray;
 
@@ -107,6 +130,12 @@ public class CooldownUI : MonoBehaviour
             cooldownText.text = remaining.ToString("0.0");
             remaining -= Time.deltaTime;
             yield return null;
+        }
+
+        if (ui == null || cooldownText == null)
+        {
+            cooldownRoutine = null;
+            yield break;
         }
 
         ui.color = Color.white;

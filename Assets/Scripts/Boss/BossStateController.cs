@@ -1,6 +1,3 @@
-// ==============================
-// BossStateController.cs
-// ==============================
 using System;
 using System.Collections;
 using UnityEngine;
@@ -54,6 +51,25 @@ public class BossStateController : MonoBehaviour
     {
         BossHealth.OnDamaged -= HandleDamaged;
         BossHealth.OnDied -= HandleDie;
+
+        if (patternRoutine != null)
+        {
+            StopCoroutine(patternRoutine);
+            patternRoutine = null;
+        }
+
+        StopAllCoroutines();
+    }
+
+    void OnDestroy()
+    {
+        if (patternRoutine != null)
+        {
+            StopCoroutine(patternRoutine);
+            patternRoutine = null;
+        }
+
+        StopAllCoroutines();
     }
 
     void HandleDie(bool isDie)
@@ -72,11 +88,11 @@ public class BossStateController : MonoBehaviour
     {
         BossPhase newPhase = currentPhase;
 
-        if (currentHealth > maxHealth * 0.5f)
+        if (currentHealth > maxHealth * 0.5f && currentHealth <= maxHealth) // Phase 1: 100% - 50% HP
         {
             newPhase = BossPhase.Phase1;
         }
-        else if (currentHealth > maxHealth * 0.3f)
+        else if (currentHealth > maxHealth * 0.3f && currentHealth <= maxHealth * 0.5f) // Phase 2: 50% - 30% HP
         {
             newPhase = BossPhase.Phase2;
         }
@@ -111,16 +127,15 @@ public class BossStateController : MonoBehaviour
 
                 case BossPhase.Phase2:
                     yield return StartCoroutine(BasicAttack());
-                    yield return StartCoroutine(BasicAttack());
                     yield return StartCoroutine(Pattern2());
                     break;
 
                 case BossPhase.Phase3:
                     yield return StartCoroutine(BasicAttack());
-                    yield return StartCoroutine(BasicAttack());
                     yield return StartCoroutine(Pattern2());
                     yield return StartCoroutine(Pattern3());
                     yield return StartCoroutine(Pattern2());
+                    yield return StartCoroutine(BasicAttack());
                     break;
             }
         }

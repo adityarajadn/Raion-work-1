@@ -44,6 +44,20 @@ public class CameraShakeManager : MonoBehaviour
     {
         PlayerHealth.OnDamaged -= HandlePlayerDamaged;
         PlayerParry.OnParry -= HandlePlayerParry;
+
+        if (parryEffectRoutine != null)
+        {
+            StopCoroutine(parryEffectRoutine);
+            parryEffectRoutine = null;
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
     }
 
     void HandlePlayerDamaged(float current, float max)
@@ -58,19 +72,31 @@ public class CameraShakeManager : MonoBehaviour
 
     void HandlePlayerParry(bool isParrying)
     {
-        if (!isParrying)
+        if (!isParrying || cam == null || !isActiveAndEnabled)
         {
             return;
         }
+
+        if (parryEffectRoutine != null)
+        {
+            StopCoroutine(parryEffectRoutine);
+        }
         
-        StartCoroutine(ParryEffect());
+        parryEffectRoutine = StartCoroutine(ParryEffect());
     }
 
     IEnumerator ParryEffect()
     {
+        if (cam == null)
+        {
+            parryEffectRoutine = null;
+            yield break;
+        }
+
         yield return StartCoroutine(zoom(parryZoomFov, parryZoomDuration)); // zoom in
         yield return StartCoroutine(freeze(parryFreezeDuration));
         yield return StartCoroutine(zoom(defaultFov, parryZoomDuration)); // zoom out
+        parryEffectRoutine = null;
     }
 
     IEnumerator zoom(float targetFOV, float duration)

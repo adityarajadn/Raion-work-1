@@ -1,6 +1,3 @@
-// ==============================
-// BossAnimationController.cs
-// ==============================
 using System;
 using System.Collections;
 using UnityEngine;
@@ -11,12 +8,13 @@ public class BossAnimationController : MonoBehaviour
     public string isAttackingParameter = "isAttacking";
     public string isPattern2Parameter = "isPattern2";
     public string isPattern3Parameter = "isPattern3";
-    public string isHurtParameter = "isHurt";
     public string isDeadParameter = "isDead";
 
     public float hurtDuration = 0.15f;
+    public float deadDuration = 5f;
     public Animator animator;
     public static event Action<bool> isHandlingAttack;
+    public static event Action<bool> finishDeadAnimation;
 
 
     void Awake()
@@ -30,7 +28,6 @@ public class BossAnimationController : MonoBehaviour
         BossStateController.OnBasicAttack += HandleBasicAttack;
         BossStateController.OnPattern2 += HandlePattern2;
         BossStateController.OnPattern3 += HandlePattern3;
-        BossHealth.OnDamaged += HandleHurt;
         BossHealth.OnDied += HandleDead;
     }
 
@@ -39,41 +36,58 @@ public class BossAnimationController : MonoBehaviour
         BossStateController.OnBasicAttack -= HandleBasicAttack;
         BossStateController.OnPattern2 -= HandlePattern2;
         BossStateController.OnPattern3 -= HandlePattern3;
-        BossHealth.OnDamaged -= HandleHurt;
         BossHealth.OnDied -= HandleDead;
+
+        StopAllCoroutines();
     }
 
     void HandleDead(bool isDead)
     {
+        if (animator == null)
+        {
+            return;
+        }
+
         animator.SetBool(isDeadParameter, isDead);
+        StartCoroutine(DeadRoutine(isDead));
+    }
+
+    IEnumerator DeadRoutine(bool isDead)
+    {
+        yield return new WaitForSeconds(deadDuration); // Durasi animasi mati, sesuaikan dengan animasi yang digunakan
+        finishDeadAnimation?.Invoke(isDead);
     }
 
     void HandleBasicAttack(bool state)
     {
+        if (animator == null)
+        {
+            return;
+        }
+
         animator.SetBool(isAttackingParameter, state);
         isHandlingAttack?.Invoke(state);
     }
 
     void HandlePattern2(bool state)
     {
+        if (animator == null)
+        {
+            return;
+        }
+
         animator.SetBool(isPattern2Parameter, state);
         isHandlingAttack?.Invoke(state);
     }
 
     void HandlePattern3(bool state)
     {
+        if (animator == null)
+        {
+            return;
+        }
+
         animator.SetBool(isPattern3Parameter, state);
         isHandlingAttack?.Invoke(state);
-    }
-
-    void HandleHurt(float currentHealth, float maxHealth)
-    {
-        StartCoroutine(HurtAnimation(currentHealth, maxHealth));
-    }
-    
-    IEnumerator HurtAnimation(float currentHealth, float maxHealth) {
-        animator.SetBool(isHurtParameter, true);
-        yield return new WaitForSeconds(hurtDuration);
-        animator.SetBool(isHurtParameter, false);
     }
 }

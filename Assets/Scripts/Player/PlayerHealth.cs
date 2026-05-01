@@ -22,7 +22,10 @@ public class PlayerHealth : DamageableEntity
         if (playerHitBox == null)
         {
             playerHitBox = GetComponent<Collider2D>();
-            playerHitBox.enabled = true;
+            if (playerHitBox != null)
+            {
+                playerHitBox.enabled = true;
+            }
         }
     }
 
@@ -44,6 +47,11 @@ public class PlayerHealth : DamageableEntity
 
     void HandleParryEvent(bool isParrying)
     {
+        if (playerHitBox == null)
+        {
+            return;
+        }
+
         if (!isParrying) {
             playerHitBox.enabled = true;
         } else {
