@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class PlayerHealth : DamageableEntity
 {
-    public static event Action<float, float> OnPlayerDamaged;
-    public static event Action OnPlayerDied;
+    public static event Action<bool> OnDied;
+    public static event Action<float, float> OnDamaged;
 
-    public CinemachineImpulseSource impulseSource;
+    [SerializeField] private CinemachineImpulseSource impulseSource;
+    [SerializeField] private Collider2D playerHitBox;
+
+    public CinemachineImpulseSource ImpulseSource => impulseSource;
 
     protected override void Awake()
     {
@@ -17,32 +20,68 @@ public class PlayerHealth : DamageableEntity
         {
             impulseSource = GetComponent<CinemachineImpulseSource>();
         }
+
+        if (playerHitBox == null)
+        {
+            playerHitBox = GetComponent<Collider2D>();
+            if (playerHitBox != null)
+            {
+                playerHitBox.enabled = true;
+            }
+        }
     }
 
     void OnEnable()
     {
-        Damaged += HandleDamaged;
-        Died += HandleDied;
+        BossStateController.basicAttackDamage += setDamageReceived;
+        BossStateController.pattern2Damage += setDamageReceived;
+        BossStateController.pattern3Damage += setDamageReceived;
+        PlayerParry.OnParry += HandleParryEvent;
     }
 
     void OnDisable()
     {
-        Damaged -= HandleDamaged;
-        Died -= HandleDied;
+        BossStateController.basicAttackDamage -= setDamageReceived;
+        BossStateController.pattern2Damage -= setDamageReceived;
+        BossStateController.pattern3Damage -= setDamageReceived;
+        PlayerParry.OnParry -= HandleParryEvent;
     }
 
-    void HandleDamaged(float current, float max)
+    void HandleParryEvent(bool isParrying)
     {
-        OnPlayerDamaged?.Invoke(current, max);
+        if (playerHitBox == null)
+        {
+            return;
+        }
+
+        if (!isParrying) {
+            playerHitBox.enabled = true;
+        } else {
+            playerHitBox.enabled = false;
+        }
     }
 
-    void HandleDied()
+    void OnTriggerEnter2D(Collider2D other)
     {
-        OnPlayerDied?.Invoke();
+        if (other.CompareTag("EnemyAttackHitBox") || other.CompareTag("EnemyAttackEffect_Slash"))
+        {
+            TakeDamage(damageReceived);
+        }
     }
 
-    protected override void OnDeath()
+    void setDamageReceived(float damage)
     {
-        Debug.Log("Player has died.");
+        damageReceived = damage;
+    }
+
+    protected override void OnDamageTaken(float currentHealth, float maxHealth)
+    {
+        OnDamaged?.Invoke(currentHealth, maxHealth);
+        Debug.Log("Current Health: " + currentHealth);
+    }
+
+    protected override void Die()
+    {
+        OnDied?.Invoke(true);
     }
 }

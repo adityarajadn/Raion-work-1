@@ -1,77 +1,62 @@
 using UnityEngine;
 using System;
 
-public class PlayerWallCheck : MonoBehaviour, IWallContactSensor
+public class PlayerWallCheck : MonoBehaviour
 {
-    public event Action<bool, int> WallContactChanged;
+    public static event Action<bool, string> OnWallContact;
+    bool isTouchingWall = false;
+    string wallSide;
+    bool facingRight = true;
+    
 
-    public Collider2D wallCheckCollider;
-    public Transform playerRoot;
-
-    private bool isTouchingWall;
-    private int wallSide;
-    public bool IsTouchingWall => isTouchingWall;
-    public int WallSide => wallSide;
-
-    void Awake()
+    void OnEnable()
     {
-        if (wallCheckCollider == null)
-        {
-            wallCheckCollider = GetComponent<Collider2D>();
-        }
+        PlayerMovement.PlayerFacingRight += UpdateFacingDirection;
+    }
 
-        if (playerRoot == null)
+    void OnDisable()
+    {
+        PlayerMovement.PlayerFacingRight -= UpdateFacingDirection;
+    }
+    
+    void UpdateFacingDirection(bool facingRight)
+    {
+        this.facingRight = facingRight;
+        findWallSide();
+    }
+
+    void findWallSide()
+    {
+        if (facingRight && isTouchingWall)
         {
-            var movement = GetComponentInParent<PlayerMovement>();
-            playerRoot = movement != null ? movement.transform : transform.parent;
+            wallSide = "Right";
+        }
+        else if (!facingRight && isTouchingWall)
+        {
+            wallSide = "Left";
+        }
+        else
+        {
+            wallSide = "None";
         }
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Wall"))
+        if (collision.CompareTag("Wall"))
         {
-            UpdateWallState(collision);
-        }
-    }
-
-    void OnTriggerStay2D(Collider2D collision)
-    {
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            UpdateWallState(collision);
+            isTouchingWall = true;
+            findWallSide();
+            OnWallContact?.Invoke(true, wallSide);
         }
     }
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Wall"))
+        if (collision.CompareTag("Wall"))
         {
-            SetWallState(false, 0);
+            isTouchingWall = false;
+            OnWallContact?.Invoke(false, wallSide);
         }
-    }
-
-    void UpdateWallState(Collider2D collision)
-    {
-        if (playerRoot == null)
-        {
-            return;
-        }
-
-        float deltaX = collision.bounds.center.x - playerRoot.position.x;
-        int side = deltaX < 0f ? -1 : 1;
-        SetWallState(true, side);
-    }
-
-    void SetWallState(bool touching, int side)
-    {
-        if (isTouchingWall == touching && wallSide == side)
-        {
-            return;
-        }
-
-        isTouchingWall = touching;
-        wallSide = side;
-        WallContactChanged?.Invoke(isTouchingWall, wallSide);
     }
 }

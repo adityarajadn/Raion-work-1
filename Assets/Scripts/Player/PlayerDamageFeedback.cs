@@ -1,24 +1,18 @@
 using System.Collections;
 using UnityEngine;
 
-public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
+public class PlayerDamageFeedback : MonoBehaviour
 {
-    public PlayerHealth playerHealth;
-    public SpriteRenderer targetRenderer;
-    public Color normalColor = Color.white;
-    public Color damageColor = Color.red;
-    public float flashDuration = 0.12f;
+    [SerializeField] private SpriteRenderer targetRenderer;
+    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color damageColor = Color.red;
+    [SerializeField] private float flashDuration = 0.12f;
     
 
     private Coroutine flashRoutine;
 
     void Awake()
     {
-        if (playerHealth == null)
-        {
-            playerHealth = GetComponent<PlayerHealth>();
-        }
-
         if (targetRenderer == null)
         {
             targetRenderer = GetComponent<SpriteRenderer>();
@@ -27,17 +21,30 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
 
     void OnEnable()
     {
-        if (playerHealth != null)
-        {
-            playerHealth.Damaged += HandleDamageEvent;
-        }
+        PlayerHealth.OnDamaged += HandleDamageEvent;
     }
 
     void OnDisable()
     {
-        if (playerHealth != null)
+        PlayerHealth.OnDamaged -= HandleDamageEvent;
+
+        if (flashRoutine != null)
         {
-            playerHealth.Damaged -= HandleDamageEvent;
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
+        }
+
+        StopAllCoroutines();
+    }
+
+    void OnDestroy()
+    {
+        PlayerHealth.OnDamaged -= HandleDamageEvent;
+
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
         }
     }
 
@@ -48,7 +55,7 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
 
     public void PlayDamageFeedback(float currentHealth, float maxHealth)
     {
-        if (targetRenderer == null)
+        if (targetRenderer == null || !isActiveAndEnabled)
         {
             return;
         }
@@ -63,8 +70,21 @@ public class PlayerDamageFeedback : MonoBehaviour, IDamageFeedback
 
     IEnumerator FlashDamage()
     {
+        if (targetRenderer == null)
+        {
+            flashRoutine = null;
+            yield break;
+        }
+
         targetRenderer.color = damageColor;
         yield return new WaitForSeconds(flashDuration);
+
+        if (targetRenderer == null)
+        {
+            flashRoutine = null;
+            yield break;
+        }
+
         targetRenderer.color = normalColor;
         flashRoutine = null;
     }

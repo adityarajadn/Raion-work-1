@@ -2,123 +2,120 @@ using UnityEngine;
 using System;
 using System.Collections;
 
-public class PlayerAnimationHandler : MonoBehaviour
+public class PlayerAnimationHandler : AnimatorControllerBase
 {
-    public Animator animator;
-    private PlayerMovement playerMovement;
-    private PlayerAttack playerAttack;
-    private PlayerHealth playerHealth;
-
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
     [SerializeField] private string isHurtParameter = "isHurt";
     [SerializeField] private string isAttackingParameter = "isAttacking";
+    [SerializeField] private string isParryingParameter = "isParrying";
+    [SerializeField] private string isOnWallParameter = "isOnWall";
     [SerializeField] private float hurtDuration = 0.15f;
+    [SerializeField] private float jumpDuration = 0.1f;
+    [SerializeField] private float attackDuration = 0.3f;
+    // isDeadParameter and deadDuration are provided by base class
 
-    private Action<bool> movingHandler;
-    private Action<bool> attackHandler;
-    private Action<float, float> damagedHandler;
-    private Coroutine hurtRoutine;
+    public static event Action<bool> movingHandler;
+    public static event Action<bool> attackHandler;
+    public static event Action<float, float> damagedHandler;
 
-
+    public static event Action<bool> finishDeadAnimation;
+    
     void Awake()
     {
-        if (animator == null)
-        {
-            animator = GetComponent<Animator>();
-        }
-
-        playerMovement = GetComponent<PlayerMovement>();
-        playerAttack = GetComponent<PlayerAttack>();
-        playerHealth = GetComponent<PlayerHealth>();
+        base.Awake();
 
         movingHandler = HandleMovingChanged;
         attackHandler = HandleAttackChanged;
         damagedHandler = HandleDamaged;
+
+        this.enabled = true;
     }
 
     void OnEnable()
     {
-        if (playerMovement != null)
-        {
-            playerMovement.OnMoving += movingHandler;
-        }
-
-        if (playerAttack != null)
-        {
-            playerAttack.AttackStateChanged += attackHandler;
-        }
-
-        if (playerHealth != null)
-        {
-            playerHealth.Damaged += damagedHandler;
-        }
+        PlayerMovement.OnMoving += movingHandler;
+        PlayerMovement.OnJump += handlePlayerJumping;
+        PlayerAttack.AttackStateChanged += attackHandler;
+        PlayerHealth.OnDamaged += damagedHandler;
+        PlayerWallCheck.OnWallContact += HandleWallContactChanged;
+        PlayerParry.OnParry += HandleParryingChanged;
+        PlayerHealth.OnDied += HandlePlayerDeath;
     }
 
     void OnDisable()
     {
-        if (playerMovement != null)
-        {
-            playerMovement.OnMoving -= movingHandler;
-        }
+        PlayerMovement.OnMoving -= movingHandler;
+        PlayerMovement.OnJump -= handlePlayerJumping;
+        PlayerAttack.AttackStateChanged -= attackHandler;
+        PlayerHealth.OnDamaged -= damagedHandler;
+        PlayerWallCheck.OnWallContact -= HandleWallContactChanged;
+        PlayerParry.OnParry -= HandleParryingChanged;
+        PlayerHealth.OnDied -= HandlePlayerDeath;
+    }
 
-        if (playerAttack != null)
-        {
-            playerAttack.AttackStateChanged -= attackHandler;
-        }
+    void HandlePlayerDeath(bool isDead)
+    {
+        SafeSetBool(isDeadParameter, isDead);
+        StartCoroutine(DeadRoutine(isDead));
+    }
 
-        if (playerHealth != null)
-        {
-            playerHealth.Damaged -= damagedHandler;
-        }
+    protected override void OnDeadFinished(bool isDead)
+    {
+        finishDeadAnimation?.Invoke(true);
+    }
+
+    void HandleWallContactChanged(bool isTouchingWall, string wallSide)
+    {
+        SafeSetBool(isOnWallParameter, isTouchingWall);
     }
 
     void HandleMovingChanged(bool isMoving)
     {
-        if (animator == null)
-        {
-            return;
-        }
+        SafeSetBool(isRunningParameter, isMoving);
+    }
 
-        animator.SetBool(isRunningParameter, isMoving);
+    void HandleParryingChanged(bool isParrying)
+    {
+        SafeSetBool(isParryingParameter, isParrying);
+        // Debug.Log("Success Parry | " + isParrying);
     }
 
     void HandleAttackChanged(bool isAttacking)
     {
-        if (animator == null)
-        {
-            return;
-        }
-
-        animator.SetBool(isAttackingParameter, isAttacking);
+        SafeSetBool(isAttackingParameter, isAttacking);
     }
 
     void HandleDamaged(float currentHealth, float maxHealth)
     {
-        if (animator == null)
-        {
-            return;
-        }
+        if (currentHealth <= 0f) return;
+        StartCoroutine(PlayHurtState());
+    }
 
-        if (currentHealth <= 0f)
-        {
-            return;
-        }
+    public void handlePlayerJumping(bool isJumping)
+    {
+        StartCoroutine(PlayJumpState());
+    }
 
-        if (hurtRoutine != null)
-        {
-            StopCoroutine(hurtRoutine);
-        }
-
-        hurtRoutine = StartCoroutine(PlayHurtState());
+    IEnumerator PlayAttackState()
+    {
+        SafeSetBool(isAttackingParameter, true);
+        yield return new WaitForSeconds(attackDuration);
+        SafeSetBool(isAttackingParameter, false);
     }
 
     IEnumerator PlayHurtState()
     {
-        animator.SetBool(isHurtParameter, true);
+        SafeSetBool(isHurtParameter, true);
         yield return new WaitForSeconds(hurtDuration);
-        animator.SetBool(isHurtParameter, false);
-        hurtRoutine = null;
+        SafeSetBool(isHurtParameter, false);
+    }
+
+    IEnumerator PlayJumpState()
+    {
+        SafeSetBool("isJumping", true);
+        yield return new WaitForSeconds(jumpDuration);
+        SafeSetBool("isJumping", false);
     }
 
 }

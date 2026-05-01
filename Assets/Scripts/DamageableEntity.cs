@@ -1,37 +1,39 @@
 using System;
 using UnityEngine;
 
-public abstract class DamageableEntity : MonoBehaviour, IDamageableEntity
+public abstract class DamageableEntity : MonoBehaviour
 {
-    [SerializeField] protected float maxHealth = 100f;
+    [Header("Health")]
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float currentHealth;
+    [SerializeField] protected float damageReceived;
 
-    public float CurrentHealth { get; private set; }
-    public float MaxHealth => maxHealth;
-
-    public event Action<float, float> Damaged;
-    public event Action Died;
+    public static event Action<float, float> OnDamaged;
 
     protected virtual void Awake()
     {
-        CurrentHealth = maxHealth;
+        currentHealth = maxHealth;
     }
 
-    public virtual void TakeDamage(float damage)
+    protected void TakeDamage(float damage)
     {
-        if (damage <= 0f || CurrentHealth <= 0f)
+        currentHealth -= damage;
+        CheckDeath();
+        OnDamageTaken(currentHealth, maxHealth);
+    }
+
+    protected void CheckDeath()
+    {
+        if (currentHealth > 0f)
         {
             return;
         }
 
-        CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
-        Damaged?.Invoke(CurrentHealth, MaxHealth);
-
-        if (CurrentHealth <= 0f)
-        {
-            Died?.Invoke();
-            OnDeath();
-        }
+        currentHealth = 0f;
+        Die();
     }
 
-    protected abstract void OnDeath();
+    protected abstract void OnDamageTaken(float currentHealth, float maxHealth);
+
+    protected abstract void Die();
 }
