@@ -1,13 +1,15 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using GameContracts;
 
-public class GameUIController : MonoBehaviour
+public class GameUIController : MonoBehaviour, IPauseStateSource, IGameUIVisibilitySource, IPauseControl, IGameUIVisibilityControl
 {
-    public static event Action<bool> GamePaused;
-    public static event Action<bool> showingGameUI;
-    static bool isPaused;
-    static bool canPause = true;
+    public event Action<bool> GamePaused;
+    public event Action<bool> ShowingGameUI;
+
+    bool isPaused;
+    bool canPause = true;
     [SerializeField] private GameObject winScreen;
     [SerializeField] private GameObject loseScreen;
 
@@ -38,7 +40,7 @@ public class GameUIController : MonoBehaviour
         TogglePause();
     }
 
-    public static void TogglePause()
+    public void TogglePause()
     {
         if (!canPause) return;
 
@@ -48,7 +50,7 @@ public class GameUIController : MonoBehaviour
         showPauseMenu(isPaused);
     }
 
-    public static void SetPauseEnabled(bool value)
+    public void SetPauseEnabled(bool value)
     {
         canPause = value;
 
@@ -60,17 +62,15 @@ public class GameUIController : MonoBehaviour
         }
     }
 
-    public static void SetGameUIVisibility(bool isVisible)
+    public void SetGameUIVisibility(bool isVisible)
     {
-        showingGameUI?.Invoke(isVisible);
+        ShowingGameUI?.Invoke(isVisible);
     }
 
-    static void showPauseMenu(bool isPaused) {
+    void showPauseMenu(bool isPaused) {
         GamePaused?.Invoke(isPaused);
-        showingGameUI?.Invoke(isPaused);
-
-        // Clear any selected UI object when resuming so keyboard (Space/Enter)
-        // doesn't accidentally activate a button left selected by the pause menu.
+        ShowingGameUI?.Invoke(isPaused);
+        
         if (!isPaused && EventSystem.current != null) {
             EventSystem.current.SetSelectedGameObject(null);
         }

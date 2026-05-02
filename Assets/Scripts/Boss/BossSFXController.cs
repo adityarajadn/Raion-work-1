@@ -1,6 +1,3 @@
-using UnityEngine;
-using UnityEngine.InputSystem;
-
 public class BossSFXController : SFXControllerBase
 {
     protected override void RegisterEvents()
@@ -43,5 +40,4 @@ public class BossSFXController : SFXControllerBase
         PlaySFX(2);
     }
 
-    // uses PlaySFX from SFXControllerBase
 }

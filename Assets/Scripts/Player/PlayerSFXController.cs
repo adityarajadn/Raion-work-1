@@ -33,6 +33,4 @@ public class PlayerSFXController : SFXControllerBase
         if (currentHealth <= 0) return;
         PlaySFX(2);
     }
-
-    // uses PlaySFX from SFXControllerBase
 }

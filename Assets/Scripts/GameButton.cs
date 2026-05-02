@@ -5,6 +5,15 @@ using UnityEngine.SceneManagement;
 public class GameButton : MonoBehaviour
 {
     [SerializeField] private string scene;
+    [SerializeField] private GameUIController gameUIController;
+
+    void Awake()
+    {
+        if (gameUIController == null)
+        {
+            gameUIController = FindAnyObjectByType<GameUIController>();
+        }
+    }
 
     public void LoadScene()
     {
@@ -27,6 +36,6 @@ public class GameButton : MonoBehaviour
 
     public void ResumeGame()
     {
-        GameUIController.TogglePause();
+        gameUIController?.TogglePause();
     }
 }

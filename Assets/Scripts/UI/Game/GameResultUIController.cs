@@ -1,9 +1,18 @@
 using UnityEngine;
+using GameContracts;
 
 public class GameResultUIController : MonoBehaviour
 {
     [SerializeField] private GameObject winScreen;
     [SerializeField] private GameObject loseScreen;
+    [SerializeField] private GameUIController gameUIController;
+    [SerializeField] private BossAnimationController bossAnimationController;
+    [SerializeField] private PlayerAnimationHandler playerAnimationHandler;
+
+    IPauseControl pauseControl;
+    IGameUIVisibilityControl gameUIVisibilityControl;
+    IDeadAnimationSource bossDeathSource;
+    IDeadAnimationSource playerDeathSource;
 
     public void Configure(GameObject winScreen, GameObject loseScreen)
     {
@@ -11,16 +20,53 @@ public class GameResultUIController : MonoBehaviour
         this.loseScreen = loseScreen;
     }
 
+    void Awake()
+    {
+        if (gameUIController == null)
+        {
+            gameUIController = FindAnyObjectByType<GameUIController>();
+        }
+
+        if (bossAnimationController == null)
+        {
+            bossAnimationController = FindAnyObjectByType<BossAnimationController>();
+        }
+
+        if (playerAnimationHandler == null)
+        {
+            playerAnimationHandler = FindAnyObjectByType<PlayerAnimationHandler>();
+        }
+
+        pauseControl = gameUIController;
+        gameUIVisibilityControl = gameUIController;
+        bossDeathSource = bossAnimationController;
+        playerDeathSource = playerAnimationHandler;
+    }
+
     void OnEnable()
     {
-        BossAnimationController.finishDeadAnimation += HandleWinCondition;
-        PlayerAnimationHandler.finishDeadAnimation += HandleLoseCondition;
+        if (bossDeathSource != null)
+        {
+            bossDeathSource.DeadFinished += HandleWinCondition;
+        }
+
+        if (playerDeathSource != null)
+        {
+            playerDeathSource.DeadFinished += HandleLoseCondition;
+        }
     }
 
     void OnDisable()
     {
-        BossAnimationController.finishDeadAnimation -= HandleWinCondition;
-        PlayerAnimationHandler.finishDeadAnimation -= HandleLoseCondition;
+        if (bossDeathSource != null)
+        {
+            bossDeathSource.DeadFinished -= HandleWinCondition;
+        }
+
+        if (playerDeathSource != null)
+        {
+            playerDeathSource.DeadFinished -= HandleLoseCondition;
+        }
     }
 
     void HandleWinCondition(bool isWin)
@@ -42,12 +88,12 @@ public class GameResultUIController : MonoBehaviour
             return;
         }
 
-        GameUIController.SetPauseEnabled(false);
+        pauseControl?.SetPauseEnabled(false);
         Time.timeScale = 0f;
 
         winScreen.SetActive(isWin);
         loseScreen.SetActive(!isWin);
 
-        GameUIController.SetGameUIVisibility(true);
+        gameUIVisibilityControl?.SetGameUIVisibility(true);
     }
 }

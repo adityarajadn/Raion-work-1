@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-// Shared base for animation controllers to centralize animator caching,
-// safe parameter setting, dead-routine handling and StopAllCoroutines on disable.
 public abstract class AnimatorControllerBase : MonoBehaviour
 {
     [SerializeField] protected Animator animator;
