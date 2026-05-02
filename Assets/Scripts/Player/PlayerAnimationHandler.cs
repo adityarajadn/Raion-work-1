@@ -1,8 +1,9 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using GameContracts;
 
-public class PlayerAnimationHandler : AnimatorControllerBase
+public class PlayerAnimationHandler : AnimatorControllerBase, IDeadAnimationSource
 {
     [Header("Animator Parameters")]
     [SerializeField] private string isRunningParameter = "isRunning";
@@ -13,15 +14,14 @@ public class PlayerAnimationHandler : AnimatorControllerBase
     [SerializeField] private float hurtDuration = 0.15f;
     [SerializeField] private float jumpDuration = 0.1f;
     [SerializeField] private float attackDuration = 0.3f;
-    // isDeadParameter and deadDuration are provided by base class
 
     public static event Action<bool> movingHandler;
     public static event Action<bool> attackHandler;
     public static event Action<float, float> damagedHandler;
 
-    public static event Action<bool> finishDeadAnimation;
+    public event Action<bool> DeadFinished;
     
-    void Awake()
+    protected override void Awake()
     {
         base.Awake();
 
@@ -43,7 +43,7 @@ public class PlayerAnimationHandler : AnimatorControllerBase
         PlayerHealth.OnDied += HandlePlayerDeath;
     }
 
-    void OnDisable()
+    protected override void OnDisable()
     {
         PlayerMovement.OnMoving -= movingHandler;
         PlayerMovement.OnJump -= handlePlayerJumping;
@@ -52,6 +52,8 @@ public class PlayerAnimationHandler : AnimatorControllerBase
         PlayerWallCheck.OnWallContact -= HandleWallContactChanged;
         PlayerParry.OnParry -= HandleParryingChanged;
         PlayerHealth.OnDied -= HandlePlayerDeath;
+
+        base.OnDisable();
     }
 
     void HandlePlayerDeath(bool isDead)
@@ -62,7 +64,7 @@ public class PlayerAnimationHandler : AnimatorControllerBase
 
     protected override void OnDeadFinished(bool isDead)
     {
-        finishDeadAnimation?.Invoke(true);
+        DeadFinished?.Invoke(true);
     }
 
     void HandleWallContactChanged(bool isTouchingWall, string wallSide)

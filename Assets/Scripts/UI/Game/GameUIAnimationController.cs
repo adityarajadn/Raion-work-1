@@ -1,9 +1,25 @@
 using UnityEngine;
+using GameContracts;
 
 public class GameUIAnimationController : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     [SerializeField] private string showPauseMenuParameter = "isPause";
+
+    [SerializeField] private GameUIController gameUIController;
+
+    IPauseStateSource pauseStateSource;
+
+    void Awake()
+    {
+        if (gameUIController == null)
+        {
+            gameUIController = FindAnyObjectByType<GameUIController>();
+        }
+
+        pauseStateSource = gameUIController;
+    }
+
     void Start()
     {
         if (animator == null) {
@@ -19,11 +35,17 @@ public class GameUIAnimationController : MonoBehaviour
     }
 
     void OnEnable() {
-        GameUIController.GamePaused += HandleGamePaused;
+        if (pauseStateSource != null)
+        {
+            pauseStateSource.GamePaused += HandleGamePaused;
+        }
     }
 
     void OnDisable() {
-        GameUIController.GamePaused -= HandleGamePaused;
+        if (pauseStateSource != null)
+        {
+            pauseStateSource.GamePaused -= HandleGamePaused;
+        }
     }
 
     void HandleGamePaused(bool isPaused) {

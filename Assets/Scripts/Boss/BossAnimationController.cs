@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using UnityEngine;
+using GameContracts;
 
-public class BossAnimationController : AnimatorControllerBase
+public class BossAnimationController : AnimatorControllerBase, IDeadAnimationSource
 {
     [Header("Animator Parameter")]
     [SerializeField] private string isAttackingParameter = "isAttacking";
@@ -12,7 +12,7 @@ public class BossAnimationController : AnimatorControllerBase
 
     [SerializeField] private float hurtDuration = 0.15f;
     public static event Action<bool> isHandlingAttack;
-    public static event Action<bool> finishDeadAnimation;
+    public event Action<bool> DeadFinished;
 
 
     void OnEnable()
@@ -23,13 +23,15 @@ public class BossAnimationController : AnimatorControllerBase
         BossHealth.OnDied += HandleDead;
     }
 
-    void OnDisable()
+    protected override void OnDisable()
     {
         BossStateController.OnBasicAttack -= HandleBasicAttack;
         BossStateController.OnPattern2 -= HandlePattern2;
         BossStateController.OnPattern3 -= HandlePattern3;
         BossHealth.OnDied -= HandleDead;
         // StopAllCoroutines is handled by base OnDisable
+
+        base.OnDisable();
     }
 
     void HandleDead(bool isDead)
@@ -40,7 +42,7 @@ public class BossAnimationController : AnimatorControllerBase
 
     protected override void OnDeadFinished(bool isDead)
     {
-        finishDeadAnimation?.Invoke(isDead);
+        DeadFinished?.Invoke(isDead);
     }
 
     void HandleBasicAttack(bool state)

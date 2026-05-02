@@ -1,17 +1,38 @@
 using UnityEngine;
+using GameContracts;
 
 public class LevelUIController : MonoBehaviour
 {
     [SerializeField] private GameObject[] levelUI;
 
+    [SerializeField] private GameUIController gameUIController;
+
+    IGameUIVisibilitySource gameUIVisibilitySource;
+
+    void Awake()
+    {
+        if (gameUIController == null)
+        {
+            gameUIController = FindAnyObjectByType<GameUIController>();
+        }
+
+        gameUIVisibilitySource = gameUIController;
+    }
+
     void OnEnable()
     {
-        GameUIController.showingGameUI += HandleShowingGameUI;
+        if (gameUIVisibilitySource != null)
+        {
+            gameUIVisibilitySource.ShowingGameUI += HandleShowingGameUI;
+        }
     }
 
     void OnDisable()
     {
-        GameUIController.showingGameUI -= HandleShowingGameUI;
+        if (gameUIVisibilitySource != null)
+        {
+            gameUIVisibilitySource.ShowingGameUI -= HandleShowingGameUI;
+        }
     }
 
     void HandleShowingGameUI(bool isShowing) {

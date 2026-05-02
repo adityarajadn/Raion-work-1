@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using GameContracts;
 
 public class PlayerInputHandler : MonoBehaviour
 {
@@ -10,7 +11,20 @@ public class PlayerInputHandler : MonoBehaviour
     public static event Action OnParryAction;
     public static event Action OnPauseAction;
 
+    [SerializeField] private GameUIController gameUIController;
+
+    IPauseStateSource pauseStateSource;
     private bool canInput = true;
+
+    void Awake()
+    {
+        if (gameUIController == null)
+        {
+            gameUIController = FindAnyObjectByType<GameUIController>();
+        }
+
+        pauseStateSource = gameUIController;
+    }
 
     void Update()
     {
@@ -26,19 +40,31 @@ public class PlayerInputHandler : MonoBehaviour
 
     void OnEnable()
     {
-        GameUIController.GamePaused += HandleGamePaused;
+        if (pauseStateSource != null)
+        {
+            pauseStateSource.GamePaused += HandleGamePaused;
+        }
+
         PlayerHealth.OnDied += HandlePlyaerDead; // Disable input saat player mati
     }
 
     void OnDisable()
     {
-        GameUIController.GamePaused -= HandleGamePaused;
+        if (pauseStateSource != null)
+        {
+            pauseStateSource.GamePaused -= HandleGamePaused;
+        }
+
         PlayerHealth.OnDied -= HandlePlyaerDead;
     }
 
     void OnDestroy()
     {
-        GameUIController.GamePaused -= HandleGamePaused;
+        if (pauseStateSource != null)
+        {
+            pauseStateSource.GamePaused -= HandleGamePaused;
+        }
+
         PlayerHealth.OnDied -= HandlePlyaerDead;
     }
 
